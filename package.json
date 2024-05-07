@@ -1,0 +1,12 @@
+{
+	"name": "stremio-addon-prehrajto",
+	"version": "0.0.1",
+	"description": "",
+	"scripts": {
+		"start": "node server.js"
+	},
+	"dependencies": {
+		"linkedom": "^0.16.11",
+		"stremio-addon-sdk": "1.1.x"
+	}
+}

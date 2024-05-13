@@ -22,7 +22,7 @@ builder.defineStreamHandler(async ({ type, id }) => {
     const fetchOptions = await getFetchConfig();
 
     const meta = await getMeta(type, id);
-    console.log("streamHandler", { type, id, meta });
+    console.log("streamHandler", { type, id });
 
     const links = await getTopItems(meta, fetchOptions);
     console.log("topItems", links.length);

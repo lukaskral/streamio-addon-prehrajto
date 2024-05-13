@@ -1,0 +1,134 @@
+Getting proxies...
+Writing output to STDOUT
+Error while scraping foxtools: Error: connect ECONNREFUSED 127.0.0.1:80
+Finished scraping from foxtools
+Finished scraping from proxyscrape-com
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+
+
+
+
+
+
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+
+
+
+
+
+
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+
+
+
+
+
+
+Error while scraping xroxy: Error [ERR_TLS_CERT_ALTNAME_INVALID]: Hostname/IP does not match certificate's altnames: Host: www.xroxy.com. is not in the cert's altnames: DNS:chinasentry.com, DNS:www.chinasentry.com
+Finished scraping from xroxy
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+
+
+
+
+
+
+Finished scraping from hidester
+Error while scraping proxy-daily: Error: net::ERR_NAME_NOT_RESOLVED at https://proxy-daily.com/
+Finished scraping from checkerproxy
+Error while scraping spys-one: TimeoutError: waiting for selector `table table tbody tr:nth-child(n+4)` failed: timeout 5000ms exceeded
+Error while scraping proxies24: TimeoutError: waiting for selector `.post-title a` failed: timeout 5000ms exceeded
+Error while scraping coolproxy: TimeoutError: Timed out after 10000 ms while trying to connect to the browser! Only Chrome at revision r901912 is guaranteed to work.
+Finished scraping from coolproxy
+Error while scraping proxyhttp-net: Error: net::ERR_CONNECTION_REFUSED at https://proxyhttp.net/
+Error while scraping premproxy: TimeoutError: Timed out after 10000 ms while trying to connect to the browser! Only Chrome at revision r901912 is guaranteed to work.
+Finished scraping from premproxy
+Error while scraping freeproxylist: TimeoutError: waiting for selector `#proxylisttable tbody tr` failed: timeout 5000ms exceeded
+Error while scraping freeproxylist: TimeoutError: waiting for selector `#proxylisttable tbody tr` failed: timeout 5000ms exceeded
+Error while scraping freeproxylist: TimeoutError: waiting for selector `#proxylisttable tbody tr` failed: timeout 5000ms exceeded
+Error while scraping freeproxylist: TimeoutError: waiting for selector `#proxylisttable tbody tr` failed: timeout 5000ms exceeded
+Error while scraping freeproxylist: TimeoutError: waiting for selector `#proxylisttable tbody tr` failed: timeout 5000ms exceeded
+Error while scraping new-net-time: TimeoutError: waiting for selector `#proxylist tbody tr` failed: timeout 5000ms exceeded
+Error while scraping sockslist: TimeoutError: waiting for selector `.proxytbl tbody tr:not(:first-child)` failed: timeout 5000ms exceeded
+Error while scraping hidemyname: TimeoutError: waiting for selector `.proxy__t tbody tr` failed: timeout 10000ms exceeded
+Error while scraping freeproxylists-net: TimeoutError: waiting for selector `table.DataGrid tbody tr:not(:first-child)` failed: timeout 10000ms exceeded
+Finished scraping from sockslist
+Error while scraping proxies24: TimeoutError: waiting for selector `#Feed1_feedItemListDisplay .item-title a` failed: timeout 5000ms exceeded
+Error while scraping proxydb: Error: Node is either not visible or not an HTMLElement
+Error while scraping free-proxy-cz: Error: net::ERR_CONNECTION_TIMED_OUT at http://free-proxy.cz/en/
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/gscraper-proxies.703493/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/100-scrapebox-proxies.297574/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/gsa-proxies-proxygo.830325/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/socks-proxies-occasional-update.803039/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/ssl-proxies-occasional-update.927669/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/anonymous-proxies.806981/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/port-scanned-proxies.988868/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/tunnel-connect-proxies.951125/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/socks-4-5-split-lists.979230/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/proxy-dump-tested.1084114/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/transparent-proxies-proxygo.890330/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/mixed-proxys-all-types.922566/): 30000ms exceeded
+Finished scraping from proxy-daily
+Finished scraping from hidemyname
+Finished scraping from proxynova
+Finished scraping from freeproxylist
+Finished scraping from new-net-time
+Finished scraping from proxy50-50-blogspot-com
+Finished scraping from free-proxy-cz
+Finished scraping from freeproxylists-net
+Finished scraping from proxyhttp-net
+Finished scraping from spys-one
+Finished scraping from proxydb
+Error while scraping freeproxylists: TimeoutError: waiting for selector `body > table > tbody > tr:nth-child(4) > td:nth-child(3) > table > tbody > tr:nth-child(2) > td > table > tbody > tr:not(:first-child) > td:first-child > a` failed: timeout 10000ms exceeded
+Error while scraping freeproxylists: TimeoutError: waiting for selector `body > table > tbody > tr:nth-child(4) > td:nth-child(3) > table > tbody > tr:nth-child(2) > td > table > tbody > tr:not(:first-child) > td:first-child > a` failed: timeout 10000ms exceeded
+Error while scraping freeproxylists: TimeoutError: waiting for selector `body > table > tbody > tr:nth-child(4) > td:nth-child(3) > table > tbody > tr:nth-child(2) > td > table > tbody > tr:not(:first-child) > td:first-child > a` failed: timeout 10000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/gscraper-proxies.703493/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/100-scrapebox-proxies.297574/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/gsa-proxies-proxygo.830325/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/socks-proxies-occasional-update.803039/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/ssl-proxies-occasional-update.927669/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/anonymous-proxies.806981/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/port-scanned-proxies.988868/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/tunnel-connect-proxies.951125/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/socks-4-5-split-lists.979230/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/proxy-dump-tested.1084114/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/transparent-proxies-proxygo.890330/): 30000ms exceeded
+Error while scraping blackhatworld: Error: Navigation Timeout Exceeded (https://www.blackhatworld.com/seo/mixed-proxys-all-types.922566/): 30000ms exceeded
+Finished scraping from blackhatworld
+Error while scraping freeproxylists: TimeoutError: waiting for selector `body > table > tbody > tr:nth-child(4) > td:nth-child(3) > table > tbody > tr:nth-child(2) > td > table > tbody > tr:not(:first-child) > td:first-child > a` failed: timeout 10000ms exceeded

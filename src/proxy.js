@@ -20,11 +20,23 @@ const { HttpsProxyAgent } = require("https-proxy-agent");
  * @returns {Promise<ProxyDetails[]>}
  **/
 async function getProxies() {
+  const proxies = [
+    {
+      proxy: "http://185.14.233.40:8080",
+    },
+    { proxy: "http://77.48.244.78:80" },
+    { proxy: "http://92.253.235.170:8082" },
+    { proxy: "http://147.251.6.21:3128" },
+    { proxy: "http://147.251.6.31:3128" },
+    { proxy: "http://109.123.254.43:53251" },
+  ];
+  return proxies;
+  /*
   const result = await fetch(
-    "https://api.proxyscrape.com/v3/free-proxy-list/get?request=getproxies&country=cz&skip=0&proxy_format=protocolipport&format=json&limit=10",
+    "https://api.proxyscrape.com/v3/free-proxy-list/get?request=getproxies&country=cz&skip=0&proxy_format=protocolipport&format=json&limit=15&anonymity=Anonymous,Elite",
     {
       headers: {
-        accept: "application/json, text/plain, */*",
+        accept: "application/json, text/plain",
         "accept-language": "en-GB,en;q=0.9",
         priority: "u=1, i",
         "sec-ch-ua":
@@ -44,6 +56,7 @@ async function getProxies() {
   );
   const proxies = (await result.json()).proxies ?? [];
   return proxies;
+  */
 }
 
 /**
@@ -52,12 +65,18 @@ async function getProxies() {
  * @param {string?} testUrl
  */
 async function filterAlive(proxies, testUrl = "https://prehraj.to/") {
-  const proxyPromises = proxies.map(async (proxyDetails) => {
-    const proxyAgent = new HttpsProxyAgent(proxyDetails.proxy);
-    const response = await fetch(testUrl, { agent: proxyAgent });
-    return response.ok ? proxyDetails : false;
-  });
-  return (await Promise.allSettled(proxyPromises))
+  return (
+    await Promise.allSettled(
+      proxies.map(async (proxyDetails) => {
+        const proxyAgent = new HttpsProxyAgent(proxyDetails.proxy);
+        const response = await fetch(testUrl, {
+          agent: proxyAgent,
+          signal: AbortSignal.timeout(60_000),
+        });
+        return response.ok ? proxyDetails : false;
+      })
+    )
+  )
     .map((result) => {
       return result;
     })

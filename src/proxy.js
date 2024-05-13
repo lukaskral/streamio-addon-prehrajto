@@ -1,4 +1,5 @@
 const { HttpsProxyAgent } = require("https-proxy-agent");
+const { SocksProxyAgent } = require("socks-proxy-agent");
 var ProxyLists = require("proxy-lists");
 
 /**
@@ -15,12 +16,47 @@ async function getProxies() {
     const proxies = [];
     ProxyLists.getProxies({
       // options
-      countries: ["cz"],
+      countries: ["cz", "sk"],
       anonymityLevels: ["elite"],
+      sourcesWhiteList: [
+        "proxyscrape-com",
+        "foxtools",
+        "xroxy",
+        "hidester",
+        "checkerproxy",
+        /*
+        
+        "freeproxylists-net",
+        "proxy50-50-blogspot-com",
+        "new-net-time",
+        "freeproxylist",
+        "proxyhttp-net",
+        "sockslist",
+        "proxy-daily",
+        "hidemyname",
+        "freeproxylists",
+        "coolproxy",
+        "blackhatworld",
+        "proxydb",
+        "proxies24",
+        "openproxy-space",
+        "proxy-list-org",
+        
+        "premproxy",
+        "spys-one",
+        "proxynova",
+        "free-proxy-cz",
+
+        */
+      ],
     })
       .on("data", (items) => {
         // Received some proxies.
-        proxies.push(...items);
+        items.forEach((item) => {
+          item.protocols.forEach((protocol) => {
+            proxies.push(`${protocol}://${item.ipAddress}:${item.port}`);
+          });
+        });
       })
       .once("end", () => {
         // Done getting proxies.
@@ -32,26 +68,40 @@ async function getProxies() {
 }
 
 /**
- * @param {ProxyDetails} proxies
+ * @param {string} proxyString
+ */
+function getProxyAgent(proxyString) {
+  if (proxyString.startsWith("socks")) {
+    return new SocksProxyAgent(proxyString);
+  }
+  if (proxyString.startsWith("http")) {
+    return new HttpsProxyAgent(proxyString);
+  }
+  return undefined;
+}
+
+/**
+ * @param {string} proxyString
  * @param {string?} testUrl
  */
-async function testProxy(proxyDetails, testUrl) {
-  const proxyAgent = new HttpsProxyAgent(proxyDetails.proxy);
+async function testProxy(proxyString, testUrl) {
+  testing;
+  const agent = getProxyAgent(proxyString);
   const response = await fetch(testUrl, {
-    agent: proxyAgent,
+    agent,
     signal: AbortSignal.timeout(60_000),
   });
   return response.ok ? proxyDetails : false;
 }
 
 /**
- * @param {ProxyDetails[]} proxies
+ * @param {string[]} proxies
  * @param {string?} testUrl
  */
 async function filterAlive(proxies, testUrl = "https://prehraj.to/") {
   return (
     await Promise.allSettled(
-      proxies.map((proxyDetails) => testProxy(proxyDetails, testUrl))
+      proxies.map((proxyString) => testProxy(proxyString, testUrl))
     )
   )
     .map((result) => {
@@ -61,4 +111,4 @@ async function filterAlive(proxies, testUrl = "https://prehraj.to/") {
     .map((result) => result.value);
 }
 
-module.exports = { getProxies, filterAlive, testProxy };
+module.exports = { getProxies, filterAlive, getProxyAgent, testProxy };

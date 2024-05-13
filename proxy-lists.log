@@ -1,0 +1,78 @@
+Getting proxies...
+Writing output to STDOUT
+Error while scraping foxtools: Error: connect ECONNREFUSED 127.0.0.1:80
+Finished scraping from foxtools
+Error while scraping xroxy: Error [ERR_TLS_CERT_ALTNAME_INVALID]: Hostname/IP does not match certificate's altnames: Host: www.xroxy.com. is not in the cert's altnames: DNS:chinasentry.com, DNS:www.chinasentry.com
+Finished scraping from xroxy
+Finished scraping from proxyscrape-com
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+
+
+
+
+
+
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+
+
+
+
+
+
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+
+
+
+
+
+
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+Error while scraping hidester: Error: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+
+
+
+
+
+
+
+Finished scraping from hidester
+Finished scraping from checkerproxy
+Error while scraping spys-one: TimeoutError: waiting for selector `table table tbody tr:nth-child(n+4)` failed: timeout 5000ms exceeded
+Error while scraping spys-one: TimeoutError: waiting for selector `table table tbody tr:nth-child(n+4)` failed: timeout 5000ms exceeded
+Error while scraping spys-one: TimeoutError: waiting for selector `table table tbody tr:nth-child(n+4)` failed: timeout 5000ms exceeded
+Error while scraping spys-one: TimeoutError: waiting for selector `table table tbody tr:nth-child(n+4)` failed: timeout 5000ms exceeded
+Error while scraping spys-one: TimeoutError: waiting for selector `table table tbody tr:nth-child(n+4)` failed: timeout 5000ms exceeded

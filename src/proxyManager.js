@@ -1,5 +1,4 @@
-const { HttpsProxyAgent } = require("https-proxy-agent");
-const { getProxies } = require("./proxy.js");
+const { getProxies, getProxyAgent, filterAlive } = require("./proxy.js");
 
 /**
  * @typedef {import('./proxy.js').ProxyDetails} ProxyDetails
@@ -9,7 +8,7 @@ class ProxyManager {
   /** @type {null | NodeJS.Timeout} */
   timeout = null;
 
-  /** @type {null | ProxyDetails} */
+  /** @type {null | string} */
   currentProxyDetails = null;
 
   /** @type {string} */
@@ -21,7 +20,7 @@ class ProxyManager {
 
   schedule() {
     const periodic = () => this.periodic();
-    this.timeout = setTimeout(periodic, 300_000);
+    this.timeout = setTimeout(() => this.periodic(), 30_000);
   }
 
   destructor() {
@@ -46,10 +45,15 @@ class ProxyManager {
     console.log("proxy: renew");
     try {
       const proxies = await getProxies();
+      console.log("proxy: scraped list", proxies);
       const aliveProxies = await filterAlive(proxies);
-      this.currentProxyDetails = aliveProxies[0];
+      console.log("proxy: filtered list", aliveProxies);
+      if (aliveProxies.length) {
+        this.currentProxyDetails = aliveProxies[0];
+      }
       console.log(`proxy: using "${this.currentProxyDetails}"`);
     } catch (e) {
+      console.log(e);
       this.currentProxyDetails = null;
       console.log("proxy: not found");
     }
@@ -58,7 +62,7 @@ class ProxyManager {
   get fetchOptions() {
     const options = {};
     if (this.currentProxyDetails) {
-      options.agent = new HttpsProxyAgent(this.currentProxyDetails.proxy);
+      options.agent = getProxyAgent(this.currentProxyDetails.proxy);
     }
     return options;
   }

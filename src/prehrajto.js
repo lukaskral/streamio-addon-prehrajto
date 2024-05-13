@@ -18,17 +18,15 @@ const headers = {
   cookie: "AC=C",
 };
 
-async function getResultStreamUrl(result, fetchOptions) {
-  const pageResponse = await fetch(
-    `https://prehraj.to${result.detailPageUrl}`,
-    {
-      ...fetchOptions,
-      headers,
-      referrerPolicy: "strict-origin-when-cross-origin",
-      body: null,
-      method: "GET",
-    }
-  );
+async function getResultStreamUrls(result, fetchOptions) {
+  const detailPageUrl = `https://prehraj.to${result.detailPageUrl}`;
+  const pageResponse = await fetch(detailPageUrl, {
+    ...fetchOptions,
+    headers,
+    referrerPolicy: "strict-origin-when-cross-origin",
+    body: null,
+    method: "GET",
+  });
   const pageHtml = await pageResponse.text();
   const { document } = parseHTML(pageHtml);
 
@@ -38,30 +36,39 @@ async function getResultStreamUrl(result, fetchOptions) {
   );
   const script = scriptEl.textContent;
 
-  let file1 = "";
-  let file2 = "";
+  let video = "";
+  let subtitles = [];
 
   try {
-    const fileRegex = /.*file: "(.*?)".*/s;
-    const sourcesRegex = /.*var sources = \[(.*?);.*/s;
+    const sourcesRegex = /.*var sources\s*=\s*(\[.*?\])\s*;/s;
     const sources = sourcesRegex.exec(script)[1];
-    const items = JSON.parse(`[${sources}]`);
-    file1 = items.map((item) => fileRegex.exec(item)[1])[0];
+    const items = eval(sources);
+    video = items.pop().file;
   } catch (error) {
-    const srcRegex = /.*src: "(.*?)".*/s;
-    file1 = srcRegex.exec(script)[1];
+    console.log("error parsing streams", error);
+    const srcRegex = /.*src:\s*"(.*?)".*/s;
+    video = srcRegex.exec(script)[1];
   }
 
   try {
-    const patternRegex = /.*var tracks = (.*?);.*/s;
-    const scriptText = soup.querySelector("script").textContent;
-    const data = JSON.parse(patternRegex.exec(scriptText)[1]);
-    file2 = data[0].src;
-  } catch (error) {
-    file2 = "";
-  }
+    const sourcesRegex = /.*var tracks\s*=\s*(\[.*?\])\s*;/s;
+    const sources = sourcesRegex.exec(script)[1];
+    const items = eval(sources);
+    subtitles = items
+      .filter((item) => item.kind === "captions")
+      .map((item) => ({
+        id: item.label,
+        url: item.src,
+        lang: item.srclang,
+      }));
+  } catch (error) {}
 
-  return file1 || file2;
+  return {
+    detailPageUrl,
+    video,
+    subtitles,
+    script,
+  };
 }
 
 async function getSearchResults(title, fetchOptions) {
@@ -103,4 +110,4 @@ async function getSearchResults(title, fetchOptions) {
   return results;
 }
 
-module.exports = { getSearchResults, getResultStreamUrl };
+module.exports = { getSearchResults, getResultStreamUrls };

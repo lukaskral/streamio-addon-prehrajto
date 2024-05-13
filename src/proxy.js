@@ -2,17 +2,7 @@ const { HttpsProxyAgent } = require("https-proxy-agent");
 
 /**
  * @typedef {{
- *   alive: boolean,
- *   anonymity: string,
- *   ip_data: {
- *     countryCode: string,
- *     mobile: boolean,
- *   },
- *   protocol: string,
- *   port: number,
  *   proxy: string,
- *   ssl: boolean,
- *   ip: string,
  * }} ProxyDetails
  */
 
@@ -20,7 +10,10 @@ const { HttpsProxyAgent } = require("https-proxy-agent");
  * @returns {Promise<ProxyDetails[]>}
  **/
 async function getProxies() {
-  const proxies = [{ proxy: "http://109.238.219.225:4153" }];
+  const proxies = [
+    { proxy: "http://109.238.219.225:4153" },
+    { proxy: "http://90.176.96.181:4145" },
+  ];
   return proxies;
   /*
   const result = await fetch(
@@ -51,21 +44,26 @@ async function getProxies() {
 }
 
 /**
- *
+ * @param {ProxyDetails} proxies
+ * @param {string?} testUrl
+ */
+async function testProxy(proxyDetails, testUrl) {
+  const proxyAgent = new HttpsProxyAgent(proxyDetails.proxy);
+  const response = await fetch(testUrl, {
+    agent: proxyAgent,
+    signal: AbortSignal.timeout(60_000),
+  });
+  return response.ok ? proxyDetails : false;
+}
+
+/**
  * @param {ProxyDetails[]} proxies
  * @param {string?} testUrl
  */
 async function filterAlive(proxies, testUrl = "https://prehraj.to/") {
   return (
     await Promise.allSettled(
-      proxies.map(async (proxyDetails) => {
-        const proxyAgent = new HttpsProxyAgent(proxyDetails.proxy);
-        const response = await fetch(testUrl, {
-          agent: proxyAgent,
-          signal: AbortSignal.timeout(60_000),
-        });
-        return response.ok ? proxyDetails : false;
-      })
+      proxies.map((proxyDetails) => testProxy(proxyDetails, testUrl))
     )
   )
     .map((result) => {
@@ -75,4 +73,4 @@ async function filterAlive(proxies, testUrl = "https://prehraj.to/") {
     .map((result) => result.value);
 }
 
-module.exports = { getProxies, filterAlive };
+module.exports = { getProxies, filterAlive, testProxy };

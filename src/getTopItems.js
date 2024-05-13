@@ -1,4 +1,4 @@
-const { getSearchResults, getResultStreamUrl } = require("./prehrajto");
+const { getSearchResults, getResultStreamUrls } = require("./prehrajto");
 
 async function getTopItems(meta, fetchOptions) {
   let links = [];
@@ -19,14 +19,14 @@ async function getTopItems(meta, fetchOptions) {
     await Promise.allSettled(
       (links.length > 5 ? links.slice(0, 5) : links).map(async (link) => {
         try {
-          const streamUrl = await getResultStreamUrl(link, fetchOptions);
+          const streamUrls = await getResultStreamUrls(link, fetchOptions);
           return {
             ...link,
-            streamUrl,
+            streamUrls,
           };
         } catch (e) {
           console.error(e);
-          return { link, streamUrl: "http://x" };
+          return { link, streamUrls: {} };
         }
       })
     )

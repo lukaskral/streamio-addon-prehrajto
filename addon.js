@@ -6,7 +6,7 @@ const { getFetchConfig } = require("./src/fetchConfig");
 // Docs: https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/responses/manifest.md
 const manifest = {
   id: "community.prehrajto",
-  version: "0.0.3",
+  version: "0.0.4",
   catalogs: [],
   resources: ["stream"],
   types: ["movie", "series"],

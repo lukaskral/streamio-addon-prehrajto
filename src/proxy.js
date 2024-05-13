@@ -20,16 +20,7 @@ const { HttpsProxyAgent } = require("https-proxy-agent");
  * @returns {Promise<ProxyDetails[]>}
  **/
 async function getProxies() {
-  const proxies = [
-    {
-      proxy: "http://185.14.233.40:8080",
-    },
-    { proxy: "http://77.48.244.78:80" },
-    { proxy: "http://92.253.235.170:8082" },
-    { proxy: "http://147.251.6.21:3128" },
-    { proxy: "http://147.251.6.31:3128" },
-    { proxy: "http://109.123.254.43:53251" },
-  ];
+  const proxies = [{ proxy: "http://109.238.219.225:4153" }];
   return proxies;
   /*
   const result = await fetch(

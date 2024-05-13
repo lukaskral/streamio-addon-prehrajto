@@ -1,9 +1,10 @@
 {
 	"name": "stremio-addon-prehrajto",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"description": "",
 	"scripts": {
-		"start": "node server.js"
+		"start": "node server.js",
+		"proxy": "npx proxy-lists getProxies --countries=\"cz\" --anonymity-levels=\"elite\" --stdout"
 	},
 	"dependencies": {
 		"free-proxy": "^0.2.1",

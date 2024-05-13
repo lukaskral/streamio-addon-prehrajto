@@ -6,14 +6,14 @@ const { ProxyManager } = require("./src/proxyManager");
 // Docs: https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/responses/manifest.md
 const manifest = {
   id: "community.prehrajto",
-  version: "0.0.5",
+  version: "0.0.6",
   catalogs: [],
   resources: ["stream"],
   types: ["movie", "series"],
   name: "Prehraj.to",
   description: "",
   idPrefixes: ["tt"],
-  logo: "https://github.com/lukaskral/stremio-addon-prehrajto/blob/main/static/logo.png?raw=true",
+  logo: "https://play-lh.googleusercontent.com/qDMsLq4DWg_OHEX6YZvM1FRKnSmUhzYH-rYbWi4QBosX9xTDpO8hRUC-oPtNt6hoFX0=w256-h256-rw",
 };
 
 const builder = new addonBuilder(manifest);

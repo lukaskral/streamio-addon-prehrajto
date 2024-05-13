@@ -1,4 +1,5 @@
 const { HttpsProxyAgent } = require("https-proxy-agent");
+const { getProxies } = require("./proxy.js");
 
 /**
  * @typedef {import('./proxy.js').ProxyDetails} ProxyDetails
@@ -20,7 +21,7 @@ class ProxyManager {
 
   schedule() {
     const periodic = () => this.periodic();
-    this.timeout = setTimeout(periodic, 30_000);
+    this.timeout = setTimeout(periodic, 300_000);
   }
 
   destructor() {

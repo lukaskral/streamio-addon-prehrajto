@@ -6,7 +6,7 @@ const { ProxyManager } = require("./src/proxyManager");
 // Docs: https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/responses/manifest.md
 const manifest = {
   id: "community.prehrajto",
-  version: "0.0.4",
+  version: "0.0.5",
   catalogs: [],
   resources: ["stream"],
   types: ["movie", "series"],

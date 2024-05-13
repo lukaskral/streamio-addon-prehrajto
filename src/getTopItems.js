@@ -13,12 +13,22 @@ async function getTopItems(meta, fetchOptions) {
     links = await getSearchResults(meta.name, fetchOptions);
   }
 
+  console.info("getTopItems, topLinks", links.length);
+
   const results = (
     await Promise.allSettled(
-      (links.length > 5 ? links.slice(0, 5) : links).map(async (link) => ({
-        ...link,
-        streamUrl: await getResultStreamUrl(link, fetchOptions),
-      }))
+      (links.length > 5 ? links.slice(0, 5) : links).map(async (link) => {
+        try {
+          const streamUrl = await getResultStreamUrl(link, fetchOptions);
+          return {
+            ...link,
+            streamUrl,
+          };
+        } catch (e) {
+          console.error(e);
+          return { link, streamUrl: "http://x" };
+        }
+      })
     )
   )
     .filter((r) => r.status === "fulfilled")

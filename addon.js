@@ -6,7 +6,7 @@ const { getFetchConfig } = require("./src/fetchConfig");
 // Docs: https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/responses/manifest.md
 const manifest = {
   id: "community.prehrajto",
-  version: "0.0.2",
+  version: "0.0.3",
   catalogs: [],
   resources: ["stream"],
   types: ["movie", "series"],
@@ -18,10 +18,15 @@ const manifest = {
 const builder = new addonBuilder(manifest);
 
 builder.defineStreamHandler(async ({ type, id }) => {
-  const fetchOptions = await getFetchConfig();
   try {
+    const fetchOptions = await getFetchConfig();
+
     const meta = await getMeta(type, id);
+    console.log("streamHandler", { type, id, meta });
+
     const links = await getTopItems(meta, fetchOptions);
+    console.log("topItems", links.length);
+
     const streams = links.map((link) => ({
       url: link.streamUrl,
       name: link.title,
@@ -35,7 +40,7 @@ builder.defineStreamHandler(async ({ type, id }) => {
       streams,
     };
   } catch (e) {
-    console.warn(e);
+    console.error(e);
     // otherwise return no streams
     return { streams: [] };
   }

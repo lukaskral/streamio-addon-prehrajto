@@ -1,6 +1,6 @@
 {
 	"name": "stremio-addon-prehrajto",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "",
 	"scripts": {
 		"start": "node server.js"

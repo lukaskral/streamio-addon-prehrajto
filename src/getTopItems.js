@@ -1,22 +1,23 @@
 const { getSearchResults, getResultStreamUrl } = require("./prehrajto");
 
-async function getTopItems(meta) {
+async function getTopItems(meta, fetchOptions) {
   let links = [];
   if (meta.episode) {
     links = await getSearchResults(
       `${meta.name} s${String(meta.episode.season).padStart(2, "0")}e${String(
         meta.episode.number
-      ).padStart(2, "0")}`
+      ).padStart(2, "0")}`,
+      fetchOptions
     );
   } else {
-    links = await getSearchResults(meta.name);
+    links = await getSearchResults(meta.name, fetchOptions);
   }
 
   const results = (
     await Promise.allSettled(
       (links.length > 5 ? links.slice(0, 5) : links).map(async (link) => ({
         ...link,
-        streamUrl: await getResultStreamUrl(link),
+        streamUrl: await getResultStreamUrl(link, fetchOptions),
       }))
     )
   )

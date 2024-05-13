@@ -1,6 +1,27 @@
+const { HttpsProxyAgent } = require("https-proxy-agent");
+
+/**
+ * @typedef {{
+ *   alive: boolean,
+ *   anonymity: string,
+ *   ip_data: {
+ *     countryCode: string,
+ *     mobile: boolean,
+ *   },
+ *   protocol: string,
+ *   port: number,
+ *   proxy: string,
+ *   ssl: boolean,
+ *   ip: string,
+ * }} ProxyDetails
+ */
+
+/**
+ * @returns {Promise<ProxyDetails[]>}
+ **/
 async function getProxies() {
   const result = await fetch(
-    "https://api.proxyscrape.com/v3/free-proxy-list/get?request=getproxies&country=cz&skip=0&proxy_format=protocolipport&format=json&limit=15",
+    "https://api.proxyscrape.com/v3/free-proxy-list/get?request=getproxies&country=cz&skip=0&proxy_format=protocolipport&format=json&limit=10",
     {
       headers: {
         accept: "application/json, text/plain, */*",
@@ -25,4 +46,23 @@ async function getProxies() {
   return proxies;
 }
 
-module.exports = { getProxies };
+/**
+ *
+ * @param {ProxyDetails[]} proxies
+ * @param {string?} testUrl
+ */
+async function filterAlive(proxies, testUrl = "https://prehraj.to/") {
+  const proxyPromises = proxies.map(async (proxyDetails) => {
+    const proxyAgent = new HttpsProxyAgent(proxyDetails.proxy);
+    const response = await fetch(testUrl, { agent: proxyAgent });
+    return response.ok ? proxyDetails : false;
+  });
+  return (await Promise.allSettled(proxyPromises))
+    .map((result) => {
+      return result;
+    })
+    .filter((result) => result.status === "fulfilled" && result.value)
+    .map((result) => result.value);
+}
+
+module.exports = { getProxies, filterAlive };

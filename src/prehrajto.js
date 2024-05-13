@@ -18,10 +18,11 @@ const headers = {
   cookie: "AC=C",
 };
 
-async function getResultStreamUrl(result) {
+async function getResultStreamUrl(result, fetchOptions) {
   const pageResponse = await fetch(
     `https://prehraj.to${result.detailPageUrl}`,
     {
+      ...fetchOptions,
       headers,
       referrerPolicy: "strict-origin-when-cross-origin",
       body: null,
@@ -63,10 +64,11 @@ async function getResultStreamUrl(result) {
   return file1 || file2;
 }
 
-async function getSearchResults(title) {
+async function getSearchResults(title, fetchOptions) {
   const pageResponse = await fetch(
     `https://prehraj.to/hledej/${encodeURIComponent(title)}?vp-page=0`,
     {
+      ...fetchOptions,
       headers,
       referrerPolicy: "strict-origin-when-cross-origin",
       body: null,

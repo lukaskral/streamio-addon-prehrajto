@@ -1,12 +1,11 @@
 const { getMeta } = require("./src/meta");
-const { getTopItems } = require("./src/prehrajto");
-const { getProxies } = require("./src/proxy");
+const { getTopItems } = require("./src/getTopItems");
+const { getProxies, filterAlive } = require("./src/proxy");
 
 +(async function test() {
   const proxies = await getProxies();
-  console.log(proxies);
-  const meta = await getMeta("movie", "tt1254207");
-  console.log(meta);
-  const links = await getTopItems(meta);
-  console.log(links);
+  const aliveProxies = await filterAlive(proxies);
+  console.log(aliveProxies);
+  //  const meta = await getMeta("movie", "tt1254207");
+  //  const links = await getTopItems(meta);
 })();

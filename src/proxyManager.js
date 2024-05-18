@@ -1,4 +1,9 @@
-const { getProxies, getProxyAgent, filterAlive } = require("./proxy.js");
+const {
+  getProxies,
+  getProxyAgent,
+  filterAlive,
+  testProxy,
+} = require("./proxy.js");
 
 /**
  * @typedef {import('./proxy.js').ProxyDetails} ProxyDetails
@@ -19,7 +24,6 @@ class ProxyManager {
   }
 
   schedule() {
-    const periodic = () => this.periodic();
     this.timeout = setTimeout(() => this.periodic(), 30_000);
   }
 
@@ -62,7 +66,7 @@ class ProxyManager {
   get fetchOptions() {
     const options = {};
     if (this.currentProxyDetails) {
-      options.agent = getProxyAgent(this.currentProxyDetails.proxy);
+      options.agent = getProxyAgent(this.currentProxyDetails);
     }
     return options;
   }

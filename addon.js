@@ -3,7 +3,6 @@ const { getMeta } = require("./src/meta");
 const { getTopItems } = require("./src/getTopItems");
 const { ProxyManager } = require("./src/proxyManager");
 
-// Docs: https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/responses/manifest.md
 const manifest = {
   id: "community.prehrajto",
   version: "0.0.7",

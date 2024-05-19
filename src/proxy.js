@@ -1,6 +1,6 @@
 const { HttpsProxyAgent } = require("https-proxy-agent");
 const { SocksProxyAgent } = require("socks-proxy-agent");
-var ProxyLists = require("proxy-lists");
+//var ProxyLists = require("proxy-lists");
 const { getSearchResults } = require("./prehrajto");
 
 /**
@@ -9,51 +9,7 @@ const { getSearchResults } = require("./prehrajto");
 async function getProxies() {
   return new Promise((resolve) => {
     const proxies = [];
-    ProxyLists.getProxies({
-      // options
-      countries: ["cz", "sk"],
-      anonymityLevels: ["elite"],
-      sourcesWhiteList: [
-        "proxyscrape-com",
-        "foxtools",
-        "xroxy",
-        "proxynova",
-        "premproxy",
-        "spys-one",
-        "free-proxy-cz",
-        /*
-        "hidester",
-        "checkerproxy",
-        "freeproxylists-net",
-        "proxy50-50-blogspot-com",
-        "new-net-time",
-        "freeproxylist",
-        "proxyhttp-net",
-        "sockslist",
-        "proxy-daily",
-        "hidemyname",
-        "freeproxylists",
-        "coolproxy",
-        "blackhatworld",
-        "proxydb",
-        "proxies24",
-        "openproxy-space",
-        "proxy-list-org",
-*/
-      ],
-    })
-      .on("data", (items) => {
-        // Received some proxies.
-        items.forEach((item) => {
-          item.protocols.forEach((protocol) => {
-            proxies.push(`${protocol}://${item.ipAddress}:${item.port}`);
-          });
-        });
-      })
-      .once("end", () => {
-        // Done getting proxies.
-        resolve(proxies);
-      });
+    resolve(proxies);
   });
 }
 

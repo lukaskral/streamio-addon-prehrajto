@@ -7,11 +7,8 @@
 		"proxy": "npx proxy-lists getProxies --countries=\"cz,sk\" --anonymity-levels=\"elite\" --stdout"
 	},
 	"dependencies": {
-		"free-proxy": "^0.2.1",
 		"https-proxy-agent": "^7.0.4",
 		"linkedom": "^0.16.11",
-		"proxy-lists": "^1.23.3",
-		"public-proxy-finder": "^0.1.1",
 		"socks-proxy-agent": "^8.0.3",
 		"stremio-addon-sdk": "1.1.x"
 	}

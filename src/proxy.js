@@ -1,6 +1,5 @@
 const { HttpsProxyAgent } = require("https-proxy-agent");
 const { SocksProxyAgent } = require("socks-proxy-agent");
-const proxyList = require("../static/proxyList.json");
 var ProxyLists = require("proxy-lists");
 const { getSearchResults } = require("./prehrajto");
 
@@ -9,7 +8,7 @@ const { getSearchResults } = require("./prehrajto");
  **/
 async function getProxies() {
   return new Promise((resolve) => {
-    const proxies = [...proxyList];
+    const proxies = [];
     ProxyLists.getProxies({
       // options
       countries: ["cz", "sk"],

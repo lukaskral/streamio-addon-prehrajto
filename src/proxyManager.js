@@ -106,6 +106,10 @@ class ProxyManager {
    * @param {Status} status
    */
   setStatus(proxyString, status) {
+    if (!proxyString) {
+      return;
+    }
+    console.log(`proxy: ${proxyString} is ${status}`);
     this.list = [
       ...this.list.map((item) =>
         item.url === proxyString

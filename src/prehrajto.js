@@ -22,7 +22,10 @@ async function getResultStreamUrls(result, fetchOptions) {
   const detailPageUrl = `https://prehraj.to${result.detailPageUrl}`;
   const pageResponse = await fetch(detailPageUrl, {
     ...fetchOptions,
-    headers,
+    headers: {
+      ...headers,
+      ...(fetchOptions.headers ?? {}),
+    },
     referrerPolicy: "strict-origin-when-cross-origin",
     body: null,
     method: "GET",
@@ -76,7 +79,10 @@ async function getSearchResults(title, fetchOptions) {
     `https://prehraj.to/hledej/${encodeURIComponent(title)}?vp-page=0`,
     {
       ...fetchOptions,
-      headers,
+      headers: {
+        ...headers,
+        ...(fetchOptions.headers ?? {}),
+      },
       referrerPolicy: "strict-origin-when-cross-origin",
       body: null,
       method: "GET",

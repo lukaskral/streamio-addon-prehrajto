@@ -7,9 +7,9 @@
 		"proxy": "npx proxy-lists getProxies --countries=\"cz,sk\" --anonymity-levels=\"elite\" --stdout"
 	},
 	"dependencies": {
-		"https-proxy-agent": "^7.0.4",
+		"fetch-socks": "^1.3.0",
 		"linkedom": "^0.16.11",
-		"socks-proxy-agent": "^8.0.3",
-		"stremio-addon-sdk": "1.1.x"
+		"stremio-addon-sdk": "1.1.x",
+		"undici": "^6.18.0"
 	}
 }

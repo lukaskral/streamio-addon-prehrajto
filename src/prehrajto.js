@@ -1,4 +1,5 @@
 const { parseHTML } = require("linkedom");
+const { fetch } = require("undici");
 
 const headers = {
   accept:

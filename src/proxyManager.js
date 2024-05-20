@@ -31,7 +31,11 @@ class ProxyManager {
       status: "unknown",
     }));
     this.periodic();
-    this.discover();
+    this.discover().then(() => {
+      if (!this.currentProxyDetails) {
+        this.periodic();
+      }
+    });
   }
 
   schedule() {
@@ -136,7 +140,7 @@ class ProxyManager {
     try {
       let unknownProxy;
       while ((unknownProxy = this.getFirstByStatus("online"))) {
-        if (unknownProxy && (await testProxy(unknownProxy))) {
+        if (await testProxy(unknownProxy)) {
           this.currentProxyDetails = unknownProxy;
           console.log(`proxy: using "${this.currentProxyDetails}"`);
           return;
@@ -146,7 +150,7 @@ class ProxyManager {
       }
 
       while ((unknownProxy = this.getFirstByStatus("unknown"))) {
-        if (unknownProxy && (await testProxy(unknownProxy))) {
+        if (await testProxy(unknownProxy)) {
           this.currentProxyDetails = unknownProxy;
           console.log(`proxy: using "${this.currentProxyDetails}"`);
           return;
@@ -166,6 +170,10 @@ class ProxyManager {
     if (this.currentProxyDetails) {
       options.agent = getProxyAgent(this.currentProxyDetails);
     }
+
+    options.headers = {
+      "X-Forwarded-For": "212.20.115.66",
+    };
     return options;
   }
 }

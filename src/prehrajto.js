@@ -19,6 +19,41 @@ const headers = {
   cookie: "AC=C",
 };
 
+/**
+ * Het headers for authenticated response
+ * @param {string} userName
+ * @param {string} password
+ */
+async function login(userName, password) {
+  const result = await fetch("https://prehraj.to/", {
+    headers: {
+      ...headers,
+      redirect: "manual",
+      "content-type": "application/x-www-form-urlencoded",
+      Referer: "https://prehraj.to/",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+    },
+    body: `email=${encodeURIComponent(userName)}&password=${encodeURIComponent(
+      password
+    )}&remember=on&_submit=P%C5%99ihl%C3%A1sit+se&_do=login-loginForm-submit`,
+    method: "POST",
+  });
+  const cookies = result.headers
+    .getSetCookie()
+    .map((cookie) => {
+      const parts = cookie.split(";");
+      const [name, value] = parts[0].split("=");
+      return { name, value };
+    })
+    .filter((cookie) => cookie.value.toLowerCase() !== "deleted");
+
+  return {
+    headers: {
+      cookie: cookies.map(({ name, value }) => `${name}=${value}`).join("; "),
+    },
+  };
+}
+
 async function getResultStreamUrls(result, fetchOptions) {
   const detailPageUrl = `https://prehraj.to${result.detailPageUrl}`;
   const pageResponse = await fetch(detailPageUrl, {
@@ -117,4 +152,4 @@ async function getSearchResults(title, fetchOptions) {
   return results;
 }
 
-module.exports = { getSearchResults, getResultStreamUrls };
+module.exports = { getSearchResults, getResultStreamUrls, login };

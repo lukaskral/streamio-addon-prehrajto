@@ -1,11 +1,11 @@
 const { addonBuilder } = require("stremio-addon-sdk");
 const { getMeta } = require("./src/meta");
 const { getTopItems } = require("./src/getTopItems");
-const { ProxyManager } = require("./src/proxyManager");
+const { login } = require("./src/prehrajto");
 
 const manifest = {
   id: "community.prehrajto",
-  version: "0.0.7",
+  version: "0.0.8",
   catalogs: [],
   resources: ["stream"],
   types: ["movie", "series"],
@@ -17,12 +17,9 @@ const manifest = {
 
 const builder = new addonBuilder(manifest);
 
-const proxyManager = new ProxyManager();
-
 builder.defineStreamHandler(async ({ type, id }) => {
   try {
-    const fetchOptions = proxyManager.fetchOptions;
-    console.log("fetchOptions", fetchOptions);
+    const fetchOptions = await login("monarcha@seznam,cz", "Q5qčxy9eCfWf");
 
     const meta = await getMeta(type, id);
     console.log("streamHandler", { type, id });

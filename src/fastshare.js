@@ -25,7 +25,7 @@ const headers = {
  * @param {string} password
  */
 async function login(userName, password) {
-  const result = await fetch("https://prehraj.to/", {
+  const result = await fetch("https://fastshare.cloud/", {
     headers: {
       ...headers,
       redirect: "manual",
@@ -54,8 +54,16 @@ async function login(userName, password) {
   };
 }
 
+function getSearchToken() {
+  const token =
+    Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15);
+
+  return token;
+}
+
 async function getResultStreamUrls(result, fetchOptions = {}) {
-  const detailPageUrl = `https://prehraj.to${result.detailPageUrl}`;
+  const detailPageUrl = result.detailPageUrl;
   const pageResponse = await fetch(detailPageUrl, {
     ...fetchOptions,
     headers: {
@@ -69,50 +77,35 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
   const pageHtml = await pageResponse.text();
   const { document } = parseHTML(pageHtml);
 
-  const scriptEls = document.querySelectorAll("script");
-  const scriptEl = [...scriptEls].find((el) =>
-    el.textContent.includes("sources =")
-  );
-  const script = scriptEl.textContent;
-
-  let video = "";
-  let subtitles = [];
-
-  try {
-    const sourcesRegex = /.*var sources\s*=\s*(\[.*?\])\s*;/s;
-    const sources = sourcesRegex.exec(script)[1];
-    const items = eval(sources);
-    video = items.pop().file;
-  } catch (error) {
-    console.log("error parsing streams", error);
-    const srcRegex = /.*src:\s*"(.*?)".*/s;
-    video = srcRegex.exec(script)[1];
-  }
-
-  try {
-    const sourcesRegex = /.*var tracks\s*=\s*(\[.*?\])\s*;/s;
-    const sources = sourcesRegex.exec(script)[1];
-    const items = eval(sources);
-    subtitles = items
-      .filter((item) => item.kind === "captions")
-      .map((item) => ({
-        id: item.label,
-        url: item.src,
-        lang: item.srclang,
-      }));
-  } catch (error) {}
-
   return {
+    title: document
+      .querySelector("meta[name=description]")
+      ?.getAttribute("content")
+      .replace(/online ke zhlédnutí a stažení/, "")
+      .trim(),
     detailPageUrl,
-    video,
-    subtitles,
-    script,
+    video: `https://fastshare.cloud${document
+      .querySelector("form#form")
+      .getAttribute("action")}`,
+    subtitles: [],
   };
 }
 
 async function getSearchResults(title, fetchOptions = {}) {
+  const params = new URLSearchParams({
+    token: getSearchToken(),
+    u: "",
+    term: Buffer.from(title).toString("base64"),
+    search_purpose: 0,
+    search_resolution: 0,
+    plain_search: 0,
+    limit: 1,
+    order: 3,
+    type: "video",
+    step: 3,
+  });
   const pageResponse = await fetch(
-    `https://prehraj.to/hledej/${encodeURIComponent(title)}?vp-page=0`,
+    `https://fastshare.cloud/test2.php?${params}`,
     {
       ...fetchOptions,
       headers: {
@@ -124,13 +117,13 @@ async function getSearchResults(title, fetchOptions = {}) {
       method: "GET",
     }
   );
-  const pageHtml = await pageResponse.text();
+  const pageHtml = `<html><ul>${await pageResponse.text()}</ul></html>`;
   const { document } = parseHTML(pageHtml);
-  const links = document.querySelectorAll("a.video--link");
-  const results = [...links].map((linkEl) => {
-    const sizeStr = linkEl
-      .querySelector(".video__tag--size")
-      .innerHTML.toUpperCase();
+  const items = document.querySelectorAll("html ul > li");
+  const results = [...items].map((listEl) => {
+    const detailEl = listEl.querySelector(".video_detail");
+    const linkEl = detailEl.querySelector("a");
+    const sizeStr = detailEl.querySelector(".pull-right").innerHTML;
     const sizeNum = parseInt(sizeStr);
     const sizeMul = sizeStr.includes("KB")
       ? 1024
@@ -140,16 +133,21 @@ async function getSearchResults(title, fetchOptions = {}) {
       ? 1073741824
       : 1;
     return {
-      title: linkEl.getAttribute("title"),
+      title: linkEl.innerText,
       detailPageUrl: linkEl.getAttribute("href"),
-      duration: linkEl.querySelector(".video__tag--time").innerHTML,
-      format: linkEl
-        .querySelector(".video__tag--format use")
-        ?.getAttribute("xlink:href"), // TODO
+      duration: [
+        ...detailEl.querySelectorAll(".video_time"),
+      ][0].innerText.trim(),
+      format: [...detailEl.querySelectorAll(".video_time")][1].innerText.trim(),
       size: sizeNum * sizeMul,
     };
   });
   return results;
 }
 
-module.exports = { getSearchResults, getResultStreamUrls, login };
+module.exports = {
+  getSearchResults,
+  getResultStreamUrls,
+  login,
+  getSearchToken,
+};

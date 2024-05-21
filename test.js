@@ -1,11 +1,11 @@
-const { getMeta } = require("./src/meta");
-const { getTopItems } = require("./src/getTopItems");
-const { getProxies, filterAlive } = require("./src/proxy");
+const { getSearchResults, getResultStreamUrls } = require("./src/fastshare");
 
 +(async function test() {
-  const proxies = await getProxies();
-  const aliveProxies = await filterAlive(proxies);
-  console.log(aliveProxies);
-  //  const meta = await getMeta("movie", "tt1254207");
-  //  const links = await getTopItems(meta);
+  const results = await getSearchResults("Mad Max Fury Road");
+
+  console.log(
+    await Promise.all(
+      results.map(async (d) => ({ ...d, ...(await getResultStreamUrls(d)) }))
+    )
+  );
 })();

@@ -1,11 +1,9 @@
-const { getSearchResults, getResultStreamUrls } = require("./src/fastshare");
+const {
+  getSearchResults,
+  getResultStreamUrls,
+} = require("./src/service/fastshare");
+const { timeToSeconds } = require("./src/utils/convert");
 
 +(async function test() {
-  const results = await getSearchResults("Mad Max Fury Road");
-
-  console.log(
-    await Promise.all(
-      results.map(async (d) => ({ ...d, ...(await getResultStreamUrls(d)) }))
-    )
-  );
+  console.log(timeToSeconds("1:00:10"));
 })();

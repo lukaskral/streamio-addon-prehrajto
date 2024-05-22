@@ -1,7 +1,7 @@
 const { socksDispatcher } = require("fetch-socks");
 const { ProxyAgent, fetch } = require("undici");
 //var ProxyLists = require("proxy-lists");
-const { getSearchResults } = require("./prehrajto");
+const { getSearchResults } = require("../service/prehrajto");
 
 /**
  * @typedef {{
@@ -43,7 +43,7 @@ async function fetchProxies() {
       },
       body: null,
       method: "GET",
-    }
+    },
   );
   const proxies = (await result.json()).proxies ?? [];
   return proxies;
@@ -69,7 +69,7 @@ function getProxyDispatcher(proxyString) {
         host: uri.hostname,
         port: parseInt(uri.port),
       },
-      { timeout: 120_000 }
+      { timeout: 120_000 },
     );
   }
   if (uri.protocol.startsWith("http")) {
@@ -112,7 +112,7 @@ async function filterAlive(proxies) {
       proxies.map(async (proxyString) => [
         proxyString,
         await testProxy(proxyString),
-      ])
+      ]),
     )
   )
     .filter((result) => result.status === "fulfilled" && result.value[1])

@@ -1,5 +1,6 @@
 const { parseHTML } = require("linkedom");
 const { fetch } = require("undici");
+const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
 
 const headers = {
   accept:
@@ -34,7 +35,7 @@ async function login(userName, password) {
       "Referrer-Policy": "strict-origin-when-cross-origin",
     },
     body: `email=${encodeURIComponent(userName)}&password=${encodeURIComponent(
-      password
+      password,
     )}&remember=on&_submit=P%C5%99ihl%C3%A1sit+se&_do=login-loginForm-submit`,
     method: "POST",
   });
@@ -71,7 +72,7 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
 
   const scriptEls = document.querySelectorAll("script");
   const scriptEl = [...scriptEls].find((el) =>
-    el.textContent.includes("sources =")
+    el.textContent.includes("sources ="),
   );
   const script = scriptEl.textContent;
 
@@ -106,7 +107,6 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
     detailPageUrl,
     video,
     subtitles,
-    script,
   };
 }
 
@@ -122,7 +122,7 @@ async function getSearchResults(title, fetchOptions = {}) {
       referrerPolicy: "strict-origin-when-cross-origin",
       body: null,
       method: "GET",
-    }
+    },
   );
   const pageHtml = await pageResponse.text();
   const { document } = parseHTML(pageHtml);
@@ -131,25 +131,47 @@ async function getSearchResults(title, fetchOptions = {}) {
     const sizeStr = linkEl
       .querySelector(".video__tag--size")
       .innerHTML.toUpperCase();
-    const sizeNum = parseInt(sizeStr);
-    const sizeMul = sizeStr.includes("KB")
-      ? 1024
-      : sizeStr.includes("MB")
-      ? 1048576
-      : sizeStr.includes("GB")
-      ? 1073741824
-      : 1;
+
     return {
       title: linkEl.getAttribute("title"),
       detailPageUrl: linkEl.getAttribute("href"),
-      duration: linkEl.querySelector(".video__tag--time").innerHTML,
+      duration: timeToSeconds(
+        linkEl.querySelector(".video__tag--time").innerHTML,
+      ),
       format: linkEl
         .querySelector(".video__tag--format use")
         ?.getAttribute("xlink:href"), // TODO
-      size: sizeNum * sizeMul,
+      size: sizeToBytes(sizeStr),
     };
   });
   return results;
 }
 
-module.exports = { getSearchResults, getResultStreamUrls, login };
+/** @typedef {import('../getTopItems.js').Resolver} Resolver */
+
+/** @typedef {{userName: string, password: string}} Init */
+
+/**
+ * @param {Object?} Init
+ * @returns Resolver
+ */
+function getResolver(initOptions) {
+  let fetchOptions = {};
+  return {
+    resolverName: "PrehrajTo",
+    init: async () => {
+      if (initOptions) {
+        const { userName, password } = initOptions;
+        fetchOptions = await login(userName, password);
+      }
+    },
+
+    search: (title) => getSearchResults(title, fetchOptions),
+    resolve: async (searchResult) => ({
+      ...searchResult,
+      ...(await getResultStreamUrls(searchResult, fetchOptions)),
+    }),
+  };
+}
+
+module.exports = { getResolver };

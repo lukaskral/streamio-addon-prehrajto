@@ -1,11 +1,17 @@
 const { addonBuilder } = require("stremio-addon-sdk");
 const { getMeta } = require("./src/meta");
 const { getTopItems } = require("./src/getTopItems");
-const { login } = require("./src/prehrajto");
+const {
+  getResolver: initPrehrajtoResolver,
+} = require("./src/service/prehrajto");
+const {
+  getResolver: initFastshareResolver,
+} = require("./src/service/fastshare");
+const { bytesToSize } = require("./src/utils/convert");
 
 const manifest = {
   id: "community.prehrajto",
-  version: "0.0.8",
+  version: "0.0.9",
   catalogs: [],
   resources: ["stream"],
   types: ["movie", "series"],
@@ -17,23 +23,31 @@ const manifest = {
 
 const builder = new addonBuilder(manifest);
 
+/** @typedef {import('./getTopItems.js').Resolver} Resolver */
+
 builder.defineStreamHandler(async ({ type, id }) => {
   try {
-    const fetchOptions = await login("monarcha@seznam,cz", "Q5qčxy9eCfWf");
+    /** @type {Resolver[]} */
+    const resolvers = [
+      initPrehrajtoResolver({
+        userName: "monarcha@seznam,cz",
+        password: "Q5qčxy9eCfWf",
+      }),
+      // initFastshareResolver(),
+    ];
 
     const meta = await getMeta(type, id);
     console.log("streamHandler", { type, id });
 
-    const links = await getTopItems(meta, fetchOptions);
-    console.log("topItems", links.length);
+    const topItems = await getTopItems(meta, resolvers);
 
-    const streams = links.map((link) => ({
-      url: link.streamUrls.video,
-      name: link.title,
-      subtitles: link.streamUrls.subtitles ?? undefined,
+    const streams = topItems.map((item) => ({
+      url: item.video,
+      name: `${item.resolverName} ${bytesToSize(item.size)}`,
+      subtitles: item.subtitles ?? undefined,
       behaviorHints: {
-        bingeGroup: `prehrajTo-${link.format}`,
-        videoSize: link.size,
+        bingeGroup: `prehrajTo-${item.format}`,
+        videoSize: item.size,
       },
     }));
     return {

@@ -1,5 +1,5 @@
 const { getProxies, getProxyAgent, testProxy } = require("./proxy.js");
-const staticProxyList = require("../static/proxyList.js");
+const staticProxyList = require("../../static/proxyList.js");
 
 /**
  * @typedef {"unknown" | "online" | "offline"} Status
@@ -121,14 +121,14 @@ class ProxyManager {
               ...item,
               status,
             }
-          : item
+          : item,
       ),
     ];
   }
 
   shouldDiscover() {
     const usableProxies = this.list.filter((proxy) =>
-      ["unknown", "online"].includes(proxy.status)
+      ["unknown", "online"].includes(proxy.status),
     );
     return (
       usableProxies.length === 0 || Date.now() - 600_000 > this.lastDiscovered

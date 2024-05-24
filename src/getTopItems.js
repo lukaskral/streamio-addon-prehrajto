@@ -82,9 +82,11 @@ async function getTopItems(meta, resolvers) {
   )
     .map((r) => (r.status === "fulfilled" && r.value ? r.value : null))
     .filter((r) => Array.isArray(r))
-    .flat();
+    .flat()
+    .filter((r) => r.score > 0);
 
   searchResults.sort((a, b) => b.score - a.score);
+  console.log(searchResults);
 
   const topItems =
     searchResults.length > 7 ? searchResults.slice(0, 7) : searchResults;

@@ -1,3 +1,4 @@
+const pkg = require("./package.json");
 const { addonBuilder } = require("stremio-addon-sdk");
 const { getMeta } = require("./src/meta");
 const { getTopItems } = require("./src/getTopItems");
@@ -7,15 +8,18 @@ const {
 const {
   getResolver: initFastshareResolver,
 } = require("./src/service/fastshare");
+const {
+  getResolver: initZalohujsiResolver,
+} = require("./src/service/zalohujsi");
 const { bytesToSize } = require("./src/utils/convert");
 
 const manifest = {
   id: "community.prehrajto",
-  version: "0.0.9",
+  version: pkg.version,
   catalogs: [],
   resources: ["stream"],
   types: ["movie", "series"],
-  name: "Prehraj.to",
+  name: "CzStreams",
   description: "",
   idPrefixes: ["tt"],
   logo: "https://play-lh.googleusercontent.com/qDMsLq4DWg_OHEX6YZvM1FRKnSmUhzYH-rYbWi4QBosX9xTDpO8hRUC-oPtNt6hoFX0=w256-h256-rw",
@@ -34,6 +38,7 @@ builder.defineStreamHandler(async ({ type, id }) => {
         password: "Q5qčxy9eCfWf",
       }),
       // initFastshareResolver(),
+      initZalohujsiResolver(),
     ];
 
     const meta = await getMeta(type, id);

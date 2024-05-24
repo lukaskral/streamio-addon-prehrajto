@@ -6,18 +6,17 @@ const headers = {
   accept:
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
   "accept-language": "en-GB,en;q=0.5",
-  "cache-control": "max-age=0",
-  priority: "u=0, i",
-  "sec-ch-ua": '"Chromium";v="124", "Brave";v="124", "Not-A.Brand";v="99"',
+  "sec-ch-ua": '"Brave";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
   "sec-ch-ua-mobile": "?0",
   "sec-ch-ua-platform": '"Windows"',
   "sec-fetch-dest": "document",
   "sec-fetch-mode": "navigate",
-  "sec-fetch-site": "none",
+  "sec-fetch-site": "same-origin",
   "sec-fetch-user": "?1",
   "sec-gpc": "1",
   "upgrade-insecure-requests": "1",
-  cookie: "AC=C",
+  Referer: "https://zalohuj.si/",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
 /**
@@ -70,38 +69,33 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
   const pageHtml = await pageResponse.text();
   const { document } = parseHTML(pageHtml);
 
-  const scriptEls = document.querySelectorAll("script");
-  const scriptEl = [...scriptEls].find((el) =>
-    el.textContent.includes("sources ="),
+  const iframeEl = document.querySelector('iframe[src*="embed"]');
+  const iframeSrc = iframeEl.getAttribute("src");
+
+  const iframeResponse = await fetch(iframeSrc, {
+    ...fetchOptions,
+    headers: {
+      ...headers,
+      ...(fetchOptions.headers ?? {}),
+    },
+    referrerPolicy: "strict-origin-when-cross-origin",
+    body: null,
+    method: "GET",
+  });
+  const iframeHtml = await iframeResponse.text();
+  const { document: iframe } = parseHTML(iframeHtml);
+
+  const videoEl = iframe.querySelector("video");
+  const video = videoEl
+    .querySelector('source[type^="video/"]')
+    .getAttribute("src");
+  let subtitles = [...videoEl.querySelectorAll('track[kind="captions"]')].map(
+    (el) => ({
+      id: el.getAttribute("label"),
+      url: el.getAttribute("src"),
+      lang: el.getAttribute("srclang"),
+    }),
   );
-  const script = scriptEl.textContent;
-
-  let video = "";
-  let subtitles = [];
-
-  try {
-    const sourcesRegex = /.*var sources\s*=\s*(\[.*?\])\s*;/s;
-    const sources = sourcesRegex.exec(script)[1];
-    const items = eval(sources);
-    video = items.pop().file;
-  } catch (error) {
-    console.log("error parsing streams", error);
-    const srcRegex = /.*src:\s*"(.*?)".*/s;
-    video = srcRegex.exec(script)[1];
-  }
-
-  try {
-    const sourcesRegex = /.*var tracks\s*=\s*(\[.*?\])\s*;/s;
-    const sources = sourcesRegex.exec(script)[1];
-    const items = eval(sources);
-    subtitles = items
-      .filter((item) => item.kind === "captions")
-      .map((item) => ({
-        id: item.label,
-        url: item.src,
-        lang: item.srclang,
-      }));
-  } catch (error) {}
 
   return {
     detailPageUrl,
@@ -112,35 +106,30 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
 
 async function getSearchResults(title, fetchOptions = {}) {
   const pageResponse = await fetch(
-    `https://prehraj.to/hledej/${encodeURIComponent(title)}?vp-page=0`,
+    `https://zalohuj.si/search/?s=${encodeURIComponent(title)}`,
     {
       ...fetchOptions,
       headers: {
         ...headers,
         ...(fetchOptions.headers ?? {}),
       },
-      referrerPolicy: "strict-origin-when-cross-origin",
       body: null,
       method: "GET",
     },
   );
   const pageHtml = await pageResponse.text();
   const { document } = parseHTML(pageHtml);
-  const links = document.querySelectorAll("a.video--link");
-  const results = [...links].map((linkEl) => {
-    const sizeStr = linkEl
-      .querySelector(".video__tag--size")
-      .innerHTML.toUpperCase();
+  const items = document.querySelectorAll(".result-item-hex");
 
+  const results = [...items].map((itemEl) => {
+    const sizeStr = itemEl.querySelector(".meta .size").innerText.toUpperCase();
+
+    const titleEl = itemEl.querySelector("h2 a");
     return {
-      title: linkEl.getAttribute("title"),
-      detailPageUrl: `https://prehraj.to${linkEl.getAttribute("href")}`,
-      duration: timeToSeconds(
-        linkEl.querySelector(".video__tag--time").innerHTML,
-      ),
-      format: linkEl
-        .querySelector(".video__tag--format use")
-        ?.getAttribute("xlink:href"), // TODO
+      title: titleEl.innerText,
+      detailPageUrl: `https://zalohuj.si${titleEl.getAttribute("href")}`,
+      duration: undefined,
+      format: undefined, // TODO
       size: sizeToBytes(sizeStr),
     };
   });
@@ -158,7 +147,7 @@ async function getSearchResults(title, fetchOptions = {}) {
 function getResolver(initOptions) {
   let fetchOptions = {};
   return {
-    resolverName: "PrehrajTo",
+    resolverName: "ZalohujSi",
     init: async () => {
       if (initOptions) {
         const { userName, password } = initOptions;

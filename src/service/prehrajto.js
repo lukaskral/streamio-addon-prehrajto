@@ -1,6 +1,7 @@
 const { parseHTML } = require("linkedom");
 const { fetch } = require("undici");
 const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
+const { extractCookies, headerCookies } = require("../utils/cookies.js");
 
 const headers = {
   accept:
@@ -39,19 +40,11 @@ async function login(userName, password) {
     )}&remember=on&_submit=P%C5%99ihl%C3%A1sit+se&_do=login-loginForm-submit`,
     method: "POST",
   });
-  const cookies = result.headers
-    .getSetCookie()
-    .map((cookie) => {
-      const parts = cookie.split(";");
-      const [name, value] = parts[0].split("=");
-      return { name, value };
-    })
-    .filter((cookie) => cookie.value.toLowerCase() !== "deleted");
+
+  const cookies = extractCookies(result);
 
   return {
-    headers: {
-      cookie: cookies.map(({ name, value }) => `${name}=${value}`).join("; "),
-    },
+    headers: headerCookies(cookies),
   };
 }
 
@@ -164,6 +157,7 @@ function getResolver(initOptions) {
         const { userName, password } = initOptions;
         fetchOptions = await login(userName, password);
       }
+      console.log("prehrajto init", fetchOptions);
     },
 
     search: (title) => getSearchResults(title, fetchOptions),

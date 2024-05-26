@@ -2,16 +2,9 @@ const pkg = require("./package.json");
 const { addonBuilder } = require("stremio-addon-sdk");
 const { getMeta } = require("./src/meta");
 const { getTopItems } = require("./src/getTopItems");
-const {
-  getResolver: initPrehrajtoResolver,
-} = require("./src/service/prehrajto");
-const {
-  getResolver: initFastshareResolver,
-} = require("./src/service/fastshare");
-const {
-  getResolver: initZalohujsiResolver,
-} = require("./src/service/zalohujsi");
+
 const { bytesToSize } = require("./src/utils/convert");
+const { initResolvers } = require("./src/initResolvers");
 
 const manifest = {
   id: "community.prehrajto",
@@ -27,24 +20,14 @@ const manifest = {
 
 const builder = new addonBuilder(manifest);
 
-/** @typedef {import('./getTopItems.js').Resolver} Resolver */
-
 builder.defineStreamHandler(async ({ type, id }) => {
   try {
-    /** @type {Resolver[]} */
-    const resolvers = [
-      initPrehrajtoResolver({
-        userName: "monarcha@seznam,cz",
-        password: "Q5qčxy9eCfWf",
-      }),
-      // initFastshareResolver(),
-      initZalohujsiResolver(),
-    ];
-
     const meta = await getMeta(type, id);
     console.log("streamHandler", { type, id });
 
-    const topItems = await getTopItems(meta, resolvers);
+    const activeResolvers = await initResolvers();
+
+    const topItems = await getTopItems(meta, activeResolvers);
 
     const streams = topItems.map((item) => ({
       url: item.video,

@@ -54,23 +54,13 @@ async function getTopItems(meta, resolvers) {
     searchTerms.push(meta.name);
   }
 
-  const activeResolvers = (
-    await Promise.allSettled(
-      resolvers.map(async (resolver) => {
-        await resolver.init();
-        return resolver;
-      }),
-    )
-  )
-    .map((r) => (r.status === "fulfilled" && r.value ? r.value : null))
-    .filter((r) => Boolean(r));
-
   const searchResults = (
     await Promise.allSettled(
-      cartesian(activeResolvers, searchTerms).map(
+      cartesian(resolvers, searchTerms).map(
         /** @param {[Resolver, string]} param0 */
         async ([resolver, searchTerm]) => {
           const searchResults = await resolver.search(searchTerm);
+          console.log(resolver.resolverName, searchResults.length);
           return searchResults.map((r) => ({
             ...r,
             resolverName: resolver.resolverName,
@@ -94,7 +84,7 @@ async function getTopItems(meta, resolvers) {
   const results = (
     await Promise.allSettled(
       topItems.map(async (searchResult) => {
-        const resolver = activeResolvers.find(
+        const resolver = resolvers.find(
           (r) => searchResult.resolverName === r.resolverName,
         );
         if (!resolver) {

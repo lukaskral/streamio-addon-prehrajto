@@ -1,0 +1,4 @@
+- [ ] sledujteto.cz
+- [ ] sdilej.cz
+- [ ] datoid.cz
+- [ ] webshare.cz

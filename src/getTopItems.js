@@ -60,7 +60,6 @@ async function getTopItems(meta, resolvers) {
         /** @param {[Resolver, string]} param0 */
         async ([resolver, searchTerm]) => {
           const searchResults = await resolver.search(searchTerm);
-          console.log(resolver.resolverName, searchResults.length);
           return searchResults.map((r) => ({
             ...r,
             resolverName: resolver.resolverName,
@@ -76,7 +75,6 @@ async function getTopItems(meta, resolvers) {
     .filter((r) => r.score > 0);
 
   searchResults.sort((a, b) => b.score - a.score);
-  console.log(searchResults);
 
   const topItems =
     searchResults.length > 7 ? searchResults.slice(0, 7) : searchResults;

@@ -16,6 +16,27 @@ const manifest = {
   description: "",
   idPrefixes: ["tt"],
   logo: "https://play-lh.googleusercontent.com/qDMsLq4DWg_OHEX6YZvM1FRKnSmUhzYH-rYbWi4QBosX9xTDpO8hRUC-oPtNt6hoFX0=w256-h256-rw",
+  behaviorHints: {
+    configurable: true,
+    configurationRequired: false,
+  },
+  config: [
+    {
+      key: "pt_enabled",
+      type: "checkbox",
+      title: "PrehrajTo enabled",
+    },
+    {
+      key: "pt_username",
+      type: "text",
+      title: "PrehrajTo username",
+    },
+    {
+      key: "pt_password",
+      type: "password",
+      title: "PrehrajTo password",
+    },
+  ],
 };
 
 const builder = new addonBuilder(manifest);
@@ -48,4 +69,15 @@ builder.defineStreamHandler(async ({ type, id }) => {
   }
 });
 
-module.exports = builder.getInterface();
+const addonInterface = builder.getInterface();
+const proxyInterface = {
+  constructor: {
+    name: "AddonInterface",
+  },
+  manifest: addonInterface.manifest,
+  get: (...args) => {
+    console.log("Addon interface", args);
+    return addonInterface.get(...args);
+  },
+};
+module.exports = proxyInterface;

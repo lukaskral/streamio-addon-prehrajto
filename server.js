@@ -3,8 +3,13 @@
 const { serveHTTP, publishToCentral } = require("stremio-addon-sdk");
 const addonInterface = require("./addon");
 
-serveHTTP(addonInterface, { port: process.env.PORT || 52932 });
-
-// when you've deployed your addon, un-comment this line
-// publishToCentral("https://my-addon.awesome/manifest.json")
-// for more information on deploying, see: https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/deploying/README.md
++(async () => {})();
+serveHTTP(addonInterface, {
+  port: process.env.PORT || 52932,
+}).then(({ server, url }) => {
+  server.on("request", (req, res) => {
+    if (req.url === "/test") {
+      res.send({ hello: "world" });
+    }
+  });
+});

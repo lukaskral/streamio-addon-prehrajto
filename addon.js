@@ -70,14 +70,5 @@ builder.defineStreamHandler(async ({ type, id }) => {
 });
 
 const addonInterface = builder.getInterface();
-const proxyInterface = {
-  constructor: {
-    name: "AddonInterface",
-  },
-  manifest: addonInterface.manifest,
-  get: (...args) => {
-    console.log("Addon interface", args);
-    return addonInterface.get(...args);
-  },
-};
-module.exports = proxyInterface;
+
+module.exports = addonInterface;

@@ -11,7 +11,7 @@ const headers = {
   priority: "u=0, i",
   "sec-ch-ua": '"Chromium";v="124", "Brave";v="124", "Not-A.Brand";v="99"',
   "sec-ch-ua-mobile": "?0",
-  "sec-ch-ua-platform": '"Windows"',
+  "sec-ch-ua-platform": "Windows",
   "sec-fetch-dest": "document",
   "sec-fetch-mode": "navigate",
   "sec-fetch-site": "none",
@@ -157,7 +157,6 @@ function getResolver(initOptions) {
         const { userName, password } = initOptions;
         fetchOptions = await login(userName, password);
       }
-      console.log("prehrajto init", fetchOptions);
     },
 
     search: (title) => getSearchResults(title, fetchOptions),

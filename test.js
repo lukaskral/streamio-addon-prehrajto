@@ -1,10 +1,7 @@
 const { getResolver } = require("./src/service/prehrajto");
 
 +(async function test() {
-  const resolver = getResolver({
-    userName: "monarcha@seznam,cz",
-    password: "Q5qčxy9eCfWf",
-  });
+  const resolver = getResolver();
   await resolver.init();
   const results = await resolver.search("amelie");
   console.log("Results", results.length);

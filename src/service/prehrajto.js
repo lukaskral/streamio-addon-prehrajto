@@ -2,6 +2,9 @@ const { parseHTML } = require("linkedom");
 const { fetch } = require("undici");
 const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
 const { extractCookies, headerCookies } = require("../utils/cookies.js");
+const { Storage } = require("../storage/Storage.js");
+const XmlStream = require("xml-stream");
+const Stream = require("stream");
 
 const headers = {
   accept:
@@ -46,6 +49,70 @@ async function login(userName, password) {
   return {
     headers: headerCookies(cookies),
   };
+}
+/**
+ * @typedef {import('../storage/Storage.js').StorageItem} StorageItem
+ */
+
+/**
+ * @param {number} page
+ * @param {(data: StorageItem) => void} onItem
+ */
+async function fetchSitemap(page = 1, onItem) {
+  const response = await fetch(`https://prehraj.to/sitemap-${page}1.to.xml`, {
+    headers: {
+      ...headers,
+      accept: "application/xhtml+xml,application/xml",
+    },
+    referrerPolicy: "strict-origin-when-cross-origin",
+    body: null,
+    method: "GET",
+  });
+
+  const readableStream = new Stream.Readable({
+    read() {
+      return true;
+    },
+  });
+  const textEncoder = new TextDecoder();
+  const xml = new XmlStream(readableStream);
+  let i = 0;
+  xml.on("endElement: url", (item) => {
+    const video = item["video:video"];
+    onItem({
+      url: item["loc"],
+      title: video["video:title"],
+      description: video["video:description"],
+      duration: video["video:duration"],
+      viewCount: video["video:view_count"],
+      videoUrl: video["video:content_loc"],
+    });
+  });
+
+  let j = 0;
+  for await (const chunk of response.body) {
+    readableStream.push(textEncoder.decode(chunk));
+    j++;
+  }
+}
+
+async function fillStorage(storage) {
+  let nextPage = 1;
+  while (true) {
+    try {
+      await fetchSitemap(nextPage, async (item) => {
+        try {
+          await storage.upsert(item);
+        } catch (e) {
+          console.error("Error inserting item", e);
+        }
+      });
+      console.log("Fetched page ", nextPage);
+      nextPage++;
+    } catch (e) {
+      break;
+    }
+  }
 }
 
 async function getResultStreamUrls(result, fetchOptions = {}) {
@@ -150,16 +217,43 @@ async function getSearchResults(title, fetchOptions = {}) {
  */
 function getResolver(initOptions) {
   let fetchOptions = {};
+  const storage = new Storage("./storage/.ulozto.sqlite");
+
   return {
     resolverName: "PrehrajTo",
     init: async () => {
+      await storage.prepared;
+
       if (initOptions) {
         const { userName, password } = initOptions;
         fetchOptions = await login(userName, password);
       }
+
+      const lastUpdated = await storage.getMeta("lastUpdated");
+      if (
+        !lastUpdated ||
+        Date.now() - new Date(lastUpdated).getTime() > 86_400_000
+      ) {
+        console.log("Indexing site...");
+        await fillStorage(storage);
+        await storage.setMeta("lastUpdated", new Date().toISOString());
+      }
+
+      console.log("Total items indexed", await storage.count());
     },
 
-    search: (title) => getSearchResults(title, fetchOptions),
+    search: async (title) => {
+      await storage.prepared;
+      const rows = await storage.search(title);
+      return rows.map((row) => ({
+        title: row.title,
+        detailPageUrl: row.url,
+        duration: row.duration,
+        format: "", // TODO
+        size: undefined,
+      }));
+    },
+
     resolve: async (searchResult) => ({
       ...searchResult,
       ...(await getResultStreamUrls(searchResult, fetchOptions)),

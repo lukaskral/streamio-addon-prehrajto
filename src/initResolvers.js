@@ -7,11 +7,8 @@ const { getResolver: initZalohujsiResolver } = require("./service/zalohujsi");
 async function initResolvers() {
   /** @type {Resolver[]} */
   const resolvers = [
-    initPrehrajtoResolver({
-      userName: "monarcha@seznam,cz",
-      password: "Q5qčxy9eCfWf",
-    }),
-    initFastshareResolver(),
+    initPrehrajtoResolver(),
+    // initFastshareResolver(),
     initZalohujsiResolver(),
   ];
 

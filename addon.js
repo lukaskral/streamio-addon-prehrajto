@@ -17,26 +17,10 @@ const manifest = {
   idPrefixes: ["tt"],
   logo: "https://play-lh.googleusercontent.com/qDMsLq4DWg_OHEX6YZvM1FRKnSmUhzYH-rYbWi4QBosX9xTDpO8hRUC-oPtNt6hoFX0=w256-h256-rw",
   behaviorHints: {
-    configurable: true,
+    configurable: false,
     configurationRequired: false,
   },
-  config: [
-    {
-      key: "pt_enabled",
-      type: "checkbox",
-      title: "PrehrajTo enabled",
-    },
-    {
-      key: "pt_username",
-      type: "text",
-      title: "PrehrajTo username",
-    },
-    {
-      key: "pt_password",
-      type: "password",
-      title: "PrehrajTo password",
-    },
-  ],
+  config: [],
 };
 
 const builder = new addonBuilder(manifest);

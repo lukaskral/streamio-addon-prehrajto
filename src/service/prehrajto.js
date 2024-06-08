@@ -100,6 +100,7 @@ async function fillStorage(storage) {
   let nextPage = 1;
   while (true) {
     try {
+      console.log("Fetching page ", nextPage);
       await fetchSitemap(nextPage, async (item) => {
         try {
           await storage.upsert(item);
@@ -107,7 +108,7 @@ async function fillStorage(storage) {
           console.error("Error inserting item", e);
         }
       });
-      console.log("Fetched page ", nextPage);
+      await new Promise((r) => setTimeout(r, 2_000));
       nextPage++;
     } catch (e) {
       break;
@@ -235,8 +236,9 @@ function getResolver(initOptions) {
         Date.now() - new Date(lastUpdated).getTime() > 86_400_000
       ) {
         console.log("Indexing site...");
-        await fillStorage(storage);
-        await storage.setMeta("lastUpdated", new Date().toISOString());
+        fillStorage(storage).then(() => {
+          storage.setMeta("lastUpdated", new Date().toISOString());
+        });
       }
 
       console.log("Total items indexed", await storage.count());

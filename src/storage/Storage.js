@@ -59,7 +59,7 @@ class Storage {
       p.push(
         new Promise((resolve, reject) => {
           this.db.run(
-            "CREATE TABLE detail (url TEXT, title TEXT, description TEXT, duration INTEGER, view_count INTEGER, video TEXT, subtitles TEXT,  UNIQUE(url))",
+            "CREATE VIRTUAL TABLE detail USING fts3(url TEXT, title TEXT, description TEXT, duration INTEGER, view_count INTEGER, video TEXT, subtitles TEXT,  UNIQUE(url))",
             (err) => (err ? reject(err) : resolve()),
           );
           console.log("Table DETAIL created");
@@ -132,21 +132,33 @@ class Storage {
    * @param {StorageItem} item
    */
   upsert(item) {
+    const params = {
+      $url: item.url,
+      $title: item.title,
+      $description: item.description,
+      $duration: item.duration,
+      $view_count: item.viewCount,
+      $video: item.videoUrl,
+    };
     return new Promise((resolve, reject) => {
-      const params = {
-        $url: item.url,
-        $title: item.title,
-        $description: item.description,
-        $duration: item.duration,
-        $view_count: item.viewCount,
-        $video: item.videoUrl,
-      };
       this.db.run(
-        "INSERT INTO detail (url, title, description, duration, view_count, video) VALUES ($url, $title, $description, $duration, $view_count, $video) " +
-          "ON CONFLICT (url) DO UPDATE SET title=$title, description=$description, duration=$duration, view_count=$viev_count, video=$video WHERE url=$url",
+        "UPDATE detail SET title=$title, description=$description, duration=$duration, view_count=$view_count, video=$video WHERE url=$url",
         params,
-        (err) => (err ? reject(err) : resolve()),
+        function (err) {
+          err ? reject(err) : resolve(this.changes);
+        },
       );
+    }).then((updated) => {
+      if (updated) {
+        return;
+      }
+      return new Promise((resolve, reject) => {
+        this.db.run(
+          "INSERT INTO detail (url, title, description, duration, view_count, video) VALUES ($url, $title, $description, $duration, $view_count, $video)",
+          params,
+          (err) => (err ? reject(err) : resolve()),
+        );
+      });
     });
   }
 
@@ -161,8 +173,8 @@ class Storage {
   search(text) {
     return new Promise((resolve, reject) => {
       this.db.all(
-        "SELECT * FROM detail WHERE title LIKE ?",
-        ["%" + text + "%"],
+        "SELECT * FROM detail WHERE title MATCH ?",
+        [text],
         (err, rows) => (err ? reject(err) : resolve(rows)),
       );
     });

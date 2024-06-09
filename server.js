@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { serveHTTP, publishToCentral } = require("stremio-addon-sdk");
-const addonInterface = require("./addon");
+const { addonInterface, activeResolvers } = require("./addon");
 
 +(async () => {})();
 serveHTTP(addonInterface, {
@@ -10,6 +10,12 @@ serveHTTP(addonInterface, {
   server.on("request", (req, res) => {
     if (req.url === "/test") {
       res.send({ hello: "world" });
+    }
+    if (req.url === "/db") {
+      return activeResolvers
+        .find((r) => r.resolverName === "PrehrajTo")
+        .stats()
+        .then((e) => res.send(e));
     }
   });
 });

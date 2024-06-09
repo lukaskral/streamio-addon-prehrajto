@@ -25,6 +25,7 @@ const { cartesian } = require("./utils/cartesian");
 /**
  * @typedef {{
  *  resolverName: string;
+ *  prepare: () => Promise<void>;
  *  init: () => Promise<boolean>;
  *  search: (title: string) => Promise<SearchResult[]>;
  *  resolve: (SearchResult) => Promise<StreamResult>;

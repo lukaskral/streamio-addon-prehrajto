@@ -151,6 +151,7 @@ function getResolver(initOptions) {
   let fetchOptions = {};
   return {
     resolverName: "Fastshare",
+    prepare: () => Promise.resolve(),
     init: async () => {
       if (initOptions) {
         const { userName, password } = initOptions;

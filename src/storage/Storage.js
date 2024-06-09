@@ -81,6 +81,7 @@ class Storage {
   }
 
   setMeta(key, value) {
+    console.log("Update meta", key, value);
     return new Promise((resolve, reject) => {
       const params = {
         $key: key,

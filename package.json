@@ -1,6 +1,6 @@
 {
 	"name": "stremio-plugin-prehrajto",
-	"version": "0.0.13",
+	"version": "0.0.15",
 	"description": "",
 	"scripts": {
 		"start": "node server.js",

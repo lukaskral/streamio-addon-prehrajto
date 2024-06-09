@@ -24,13 +24,16 @@ const manifest = {
 };
 
 const builder = new addonBuilder(manifest);
+let activeResolvers = [];
 
 builder.defineStreamHandler(async ({ type, id }) => {
   try {
     const meta = await getMeta(type, id);
     console.log("streamHandler", { type, id });
 
-    const activeResolvers = await initResolvers();
+    if (!activeResolvers.length) {
+      activeResolvers = await initResolvers();
+    }
 
     const topItems = await getTopItems(meta, activeResolvers);
 
@@ -39,7 +42,6 @@ builder.defineStreamHandler(async ({ type, id }) => {
       name: `${item.resolverName} ${bytesToSize(item.size)}`,
       subtitles: item.subtitles ?? undefined,
       behaviorHints: {
-        bingeGroup: `prehrajTo-${item.format}`,
         videoSize: item.size,
       },
     }));
@@ -53,6 +55,10 @@ builder.defineStreamHandler(async ({ type, id }) => {
   }
 });
 
+(async function init() {
+  activeResolvers = await initResolvers();
+})();
+
 const addonInterface = builder.getInterface();
 
-module.exports = addonInterface;
+module.exports = { addonInterface, activeResolvers };

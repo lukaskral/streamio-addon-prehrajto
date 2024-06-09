@@ -9,12 +9,13 @@ async function initResolvers() {
   const resolvers = [
     initPrehrajtoResolver(),
     // initFastshareResolver(),
-    initZalohujsiResolver(),
+    // initZalohujsiResolver(),
   ];
 
   const activeResolvers = (
     await Promise.allSettled(
       resolvers.map(async (resolver) => {
+        await resolver.prepare();
         await resolver.init();
         return resolver;
       }),

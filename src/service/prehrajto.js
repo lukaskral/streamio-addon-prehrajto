@@ -5,19 +5,20 @@ const { extractCookies, headerCookies } = require("../utils/cookies.js");
 const { Storage } = require("../storage/Storage.js");
 const XmlStream = require("xml-stream");
 const Stream = require("stream");
+const { isOlder } = require("../utils/isOlder.js");
 
 const headers = {
   accept:
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-  "accept-language": "en-GB,en;q=0.5",
+  "accept-language": "en-GB,en;q=0.6",
   "cache-control": "max-age=0",
   priority: "u=0, i",
-  "sec-ch-ua": '"Chromium";v="124", "Brave";v="124", "Not-A.Brand";v="99"',
+  "sec-ch-ua": '"Brave";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
   "sec-ch-ua-mobile": "?0",
-  "sec-ch-ua-platform": "Windows",
+  "sec-ch-ua-platform": '"Windows"',
   "sec-fetch-dest": "document",
   "sec-fetch-mode": "navigate",
-  "sec-fetch-site": "none",
+  "sec-fetch-site": "same-origin",
   "sec-fetch-user": "?1",
   "sec-gpc": "1",
   "upgrade-insecure-requests": "1",
@@ -42,6 +43,23 @@ async function login(userName, password) {
       password,
     )}&remember=on&_submit=P%C5%99ihl%C3%A1sit+se&_do=login-loginForm-submit`,
     method: "POST",
+  });
+
+  const cookies = extractCookies(result);
+
+  return {
+    headers: headerCookies(cookies),
+  };
+}
+
+async function loginAnonymous() {
+  const result = await fetch("https://prehraj.to/", {
+    headers: {
+      ...headers,
+      Referer: "https://prehraj.to/",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+    },
+    method: "GET",
   });
 
   const cookies = extractCookies(result);
@@ -96,7 +114,7 @@ async function fetchSitemap(page = 1, onItem) {
   }
 }
 
-async function fillStorage(storage) {
+async function fillStorage(storage, maxPages = 30) {
   let nextPage = 1;
   while (true) {
     try {
@@ -110,7 +128,11 @@ async function fillStorage(storage) {
       });
       await new Promise((r) => setTimeout(r, 2_000));
       nextPage++;
+      if (nextPage > maxPages) {
+        break;
+      }
     } catch (e) {
+      console.log("Indexing finished", e);
       break;
     }
   }
@@ -218,40 +240,73 @@ async function getSearchResults(title, fetchOptions = {}) {
  */
 function getResolver(initOptions) {
   let fetchOptions = {};
+  let isIndexing = false;
   const storage = new Storage("./storage/.ulozto.sqlite");
 
   return {
     resolverName: "PrehrajTo",
+
+    prepare: async () => {
+      await storage.prepared;
+      const lastReindexed = await storage.getMeta("lastReindexed");
+
+      if (!isIndexing) {
+        if (isOlder(3_600_000, lastReindexed)) {
+          console.log("Reindexing site...");
+          isIndexing = true;
+          fillStorage(storage).then(() => {
+            storage.setMeta("lastReindexed", new Date().toISOString());
+            storage.setMeta("lastUpdated", new Date().toISOString());
+            isIndexing = false;
+          });
+        }
+      }
+    },
+
     init: async () => {
       await storage.prepared;
 
       if (initOptions) {
         const { userName, password } = initOptions;
         fetchOptions = await login(userName, password);
+      } else {
+        fetchOptions = loginAnonymous();
       }
 
+      const lastReindexed = await storage.getMeta("lastReindexed");
       const lastUpdated = await storage.getMeta("lastUpdated");
-      if (
-        !lastUpdated ||
-        Date.now() - new Date(lastUpdated).getTime() > 86_400_000
-      ) {
-        console.log("Indexing site...");
-        fillStorage(storage).then(() => {
-          storage.setMeta("lastUpdated", new Date().toISOString());
-        });
-      }
 
-      console.log("Total items indexed", await storage.count());
+      if (!isIndexing) {
+        if (isOlder(86_400_000, lastReindexed)) {
+          console.log("Reindexing site...");
+          isIndexing = true;
+          fillStorage(storage).then(() => {
+            storage.setMeta("lastReindexed", new Date().toISOString());
+            storage.setMeta("lastUpdated", new Date().toISOString());
+            isIndexing = false;
+          });
+        } else if (isOlder(3_600_000, lastUpdated)) {
+          isIndexing = true;
+          console.log("Indexing new items...");
+          fillStorage(storage, 1).then(() => {
+            storage.setMeta("lastUpdated", new Date().toISOString());
+            isIndexing = false;
+          });
+        }
+      }
     },
 
+    searchX: (title) => getSearchResults(title, fetchOptions),
     search: async (title) => {
+      console.log(title);
       await storage.prepared;
-      const rows = await storage.search(title);
+      const rows = await storage.search(`"${title.replaceAll(" ", '"+"')}"`);
+      console.log(rows);
       return rows.map((row) => ({
         title: row.title,
         detailPageUrl: row.url,
         duration: row.duration,
-        format: "", // TODO
+        format: row.video, // TODO
         size: undefined,
       }));
     },
@@ -260,6 +315,11 @@ function getResolver(initOptions) {
       ...searchResult,
       ...(await getResultStreamUrls(searchResult, fetchOptions)),
     }),
+
+    stats: async () => {
+      const totalCount = await storage.count();
+      return { totalCount };
+    },
   };
 }
 

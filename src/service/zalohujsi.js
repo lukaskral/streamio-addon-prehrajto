@@ -148,6 +148,7 @@ function getResolver(initOptions) {
   let fetchOptions = {};
   return {
     resolverName: "ZalohujSi",
+    prepare: () => Promise.resolve(),
     init: async () => {
       if (initOptions) {
         const { userName, password } = initOptions;

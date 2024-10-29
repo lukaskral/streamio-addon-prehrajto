@@ -66,75 +66,6 @@ async function loginAnonymous() {
     headers: headerCookies(cookies),
   };
 }
-/**
- * @typedef {import('../storage/Storage.js').StorageItem} StorageItem
- */
-
-/**
- * @param {number} page
- * @param {(data: StorageItem) => void} onItem
- */
-async function fetchSitemap(page = 1, onItem) {
-  const response = await fetch(`https://prehraj.to/sitemap-${page}1.to.xml`, {
-    headers: {
-      ...headers,
-      accept: "application/xhtml+xml,application/xml",
-    },
-    referrerPolicy: "strict-origin-when-cross-origin",
-    body: null,
-    method: "GET",
-  });
-
-  const readableStream = new Stream.Readable({
-    read() {
-      return true;
-    },
-  });
-  const textEncoder = new TextDecoder();
-  const xml = new XmlStream(readableStream);
-  let i = 0;
-  xml.on("endElement: url", (item) => {
-    const video = item["video:video"];
-    onItem({
-      url: item["loc"],
-      title: video["video:title"],
-      description: video["video:description"],
-      duration: video["video:duration"],
-      viewCount: video["video:view_count"],
-      videoUrl: video["video:content_loc"],
-    });
-  });
-
-  let j = 0;
-  for await (const chunk of response.body) {
-    readableStream.push(textEncoder.decode(chunk));
-    j++;
-  }
-}
-
-async function fillStorage(storage, maxPages = 30) {
-  let nextPage = 1;
-  while (true) {
-    try {
-      console.log("Fetching page ", nextPage);
-      await fetchSitemap(nextPage, async (item) => {
-        try {
-          await storage.upsert(item);
-        } catch (e) {
-          console.error("Error inserting item", e);
-        }
-      });
-      await new Promise((r) => setTimeout(r, 2_000));
-      nextPage++;
-      if (nextPage > maxPages) {
-        break;
-      }
-    } catch (e) {
-      console.log("Indexing finished", e);
-      break;
-    }
-  }
-}
 
 async function getResultStreamUrls(result, fetchOptions = {}) {
   const detailPageUrl = result.detailPageUrl;
@@ -239,79 +170,22 @@ async function getSearchResults(title, fetchOptions = {}) {
  */
 function getResolver(initOptions) {
   let fetchOptions = {};
-  let isIndexing = false;
-  //const storage = new Storage("./storage/.ulozto.sqlite");
 
   return {
     resolverName: "PrehrajTo",
 
-    prepare: async () => {
-      //await storage.prepared;
-      //const lastReindexed = await storage.getMeta("lastReindexed");
-      /*
-      if (!isIndexing) {
-        if (isOlder(3_600_000, lastReindexed)) {
-          console.log("Reindexing site...");
-          isIndexing = true;
-          fillStorage(storage).then(() => {
-            storage.setMeta("lastReindexed", new Date().toISOString());
-            storage.setMeta("lastUpdated", new Date().toISOString());
-            isIndexing = false;
-          });
-        }
-      }
-      */
-    },
+    prepare: async () => {},
 
     init: async () => {
-      //await storage.prepared;
-
       if (initOptions) {
         const { userName, password } = initOptions;
         fetchOptions = await login(userName, password);
       } else {
         fetchOptions = loginAnonymous();
       }
-
-      /*
-      const lastReindexed = await storage.getMeta("lastReindexed");
-      const lastUpdated = await storage.getMeta("lastUpdated");
-
-      if (!isIndexing) {
-        if (isOlder(86_400_000, lastReindexed)) {
-          console.log("Reindexing site...");
-          isIndexing = true;
-          fillStorage(storage).then(() => {
-            storage.setMeta("lastReindexed", new Date().toISOString());
-            storage.setMeta("lastUpdated", new Date().toISOString());
-            isIndexing = false;
-          });
-        } else if (isOlder(3_600_000, lastUpdated)) {
-          isIndexing = true;
-          console.log("Indexing new items...");
-          fillStorage(storage, 1).then(() => {
-            storage.setMeta("lastUpdated", new Date().toISOString());
-            isIndexing = false;
-          });
-        }
-      }
-      */
     },
 
     search: (title) => getSearchResults(title, fetchOptions),
-    searchX: async (title) => {
-      console.log(title);
-      await storage.prepared;
-      const rows = await storage.search(`"${title.replaceAll(" ", '"+"')}"`);
-      console.log(rows);
-      return rows.map((row) => ({
-        title: row.title,
-        detailPageUrl: row.url,
-        duration: row.duration,
-        format: row.video, // TODO
-        size: undefined,
-      }));
-    },
 
     resolve: async (searchResult) => ({
       ...searchResult,

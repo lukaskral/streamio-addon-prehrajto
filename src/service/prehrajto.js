@@ -1,10 +1,6 @@
 const { parseHTML } = require("linkedom");
 const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
 const { extractCookies, headerCookies } = require("../utils/cookies.js");
-const { Storage } = require("../storage/Storage.js");
-const XmlStream = require("xml-stream");
-const Stream = require("stream");
-const { isOlder } = require("../utils/isOlder.js");
 
 const headers = {
   accept:
@@ -27,7 +23,7 @@ const headers = {
 };
 
 /**
- * Het headers for authenticated response
+ * Get headers for authenticated response
  * @param {string} userName
  * @param {string} password
  */
@@ -65,6 +61,24 @@ async function loginAnonymous() {
   return {
     headers: headerCookies(cookies),
   };
+}
+
+const fetchOptionsCache = new Map();
+/**
+ * Get headers for authenticated response
+ * @param {string} userName
+ * @param {string} password
+ */
+async function getFetchOptions(userName, password) {
+  const cacheKey = `${userName}:${password}`;
+  const fetchOptions = fetchOptionsCache.get(cacheKey);
+  if (fetchOptions) {
+    return fetchOptions;
+  }
+
+  const newFetchOptions = await login(userName, password);
+  fetchOptionsCache.set(cacheKey, newFetchOptions);
+  return newFetchOptions;
 }
 
 async function getResultStreamUrls(result, fetchOptions = {}) {
@@ -162,39 +176,34 @@ async function getSearchResults(title, fetchOptions = {}) {
 
 /** @typedef {import('../getTopItems.js').Resolver} Resolver */
 
-/** @typedef {{userName: string, password: string}} Init */
-
 /**
- * @param {Object?} Init
  * @returns Resolver
  */
-function getResolver(initOptions) {
-  let fetchOptions = {};
-
+function getResolver() {
   return {
     resolverName: "PrehrajTo",
 
     prepare: async () => {},
 
-    init: async () => {
-      if (initOptions) {
-        const { userName, password } = initOptions;
-        fetchOptions = await login(userName, password);
-      } else {
-        fetchOptions = loginAnonymous();
-      }
+    init: async () => {},
+
+    search: async (title, addonConfig) => {
+      const fetchOptions = await getFetchOptions(
+        addonConfig.prehrajtoUsername,
+        addonConfig.prehrajtoPassword,
+      );
+      return getSearchResults(title, fetchOptions);
     },
 
-    search: (title) => getSearchResults(title, fetchOptions),
-
-    resolve: async (searchResult) => ({
-      ...searchResult,
-      ...(await getResultStreamUrls(searchResult, fetchOptions)),
-    }),
-
-    stats: async () => {
-      const totalCount = await storage.count();
-      return { totalCount };
+    resolve: async (searchResult, addonConfig) => {
+      const fetchOptions = await getFetchOptions(
+        addonConfig.prehrajtoUsername,
+        addonConfig.prehrajtoPassword,
+      );
+      return {
+        ...searchResult,
+        ...(await getResultStreamUrls(searchResult, fetchOptions)),
+      };
     },
   };
 }

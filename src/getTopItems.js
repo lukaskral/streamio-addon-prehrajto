@@ -2,6 +2,7 @@ const { computeScore } = require("./score");
 const { cartesian } = require("./utils/cartesian");
 
 /** @typedef {import('./meta.js').Meta} Meta */
+/** @typedef {import('../userConfig/userConfig.js').UserConfigData} UserConfigData */
 
 /**
  * @typedef {{
@@ -36,9 +37,10 @@ const { cartesian } = require("./utils/cartesian");
  *
  * @param {Meta} meta
  * @param {Resolver[]} resolvers
+ * @param {UserConfigData} config
  * @returns {Promise<StreamResult[]>}
  */
-async function getTopItems(meta, resolvers) {
+async function getTopItems(meta, resolvers, config) {
   /** @type {string[]} */
   const searchTerms = [];
 
@@ -63,7 +65,7 @@ async function getTopItems(meta, resolvers) {
       cartesian(resolvers, searchTerms).map(
         /** @param {[Resolver, string]} param0 */
         async ([resolver, searchTerm]) => {
-          const searchResults = await resolver.search(searchTerm);
+          const searchResults = await resolver.search(searchTerm, config);
           return searchResults.map((r) => ({
             ...r,
             resolverName: resolver.resolverName,
@@ -93,7 +95,7 @@ async function getTopItems(meta, resolvers) {
           return null;
         }
         try {
-          const data = await resolver.resolve(searchResult);
+          const data = await resolver.resolve(searchResult, config);
           return {
             ...searchResult,
             video: data.video,

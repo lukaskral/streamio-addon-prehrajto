@@ -5,6 +5,7 @@ const { getTopItems } = require("./src/getTopItems");
 
 const { bytesToSize } = require("./src/utils/convert");
 const { initResolvers } = require("./src/initResolvers");
+const { userConfigDef } = require("./src/userConfig/userConfig");
 
 const manifest = {
   id: "community.prehrajto",
@@ -17,16 +18,16 @@ const manifest = {
   idPrefixes: ["tt"],
   logo: "https://play-lh.googleusercontent.com/qDMsLq4DWg_OHEX6YZvM1FRKnSmUhzYH-rYbWi4QBosX9xTDpO8hRUC-oPtNt6hoFX0=w256-h256-rw",
   behaviorHints: {
-    configurable: false,
-    configurationRequired: false,
+    configurable: true,
+    configurationRequired: true,
   },
-  config: [],
+  config: userConfigDef,
 };
 
 const builder = new addonBuilder(manifest);
 let activeResolvers = [];
 
-builder.defineStreamHandler(async ({ type, id }) => {
+builder.defineStreamHandler(async ({ type, id, config }) => {
   try {
     const meta = await getMeta(type, id);
     console.log("streamHandler", { type, id });
@@ -35,7 +36,7 @@ builder.defineStreamHandler(async ({ type, id }) => {
       activeResolvers = await initResolvers();
     }
 
-    const topItems = await getTopItems(meta, activeResolvers);
+    const topItems = await getTopItems(meta, activeResolvers, config);
 
     const streams = topItems.map((item) => ({
       url: item.video,

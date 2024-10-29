@@ -51,6 +51,9 @@ async function getTopItems(meta, resolvers) {
     ].join("");
     const title = `${meta.name} ${episodeSignature}`;
     searchTerms.push(title);
+    searchTerms.push(
+      `${meta.name} ${meta.episode.season}x${meta.episode.number}`,
+    );
   } else {
     searchTerms.push(meta.name);
   }

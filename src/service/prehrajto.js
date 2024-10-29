@@ -1,5 +1,4 @@
 const { parseHTML } = require("linkedom");
-const { fetch } = require("undici");
 const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
 const { extractCookies, headerCookies } = require("../utils/cookies.js");
 const { Storage } = require("../storage/Storage.js");
@@ -10,19 +9,21 @@ const { isOlder } = require("../utils/isOlder.js");
 const headers = {
   accept:
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-  "accept-language": "en-GB,en;q=0.6",
+  "accept-language": "en-GB,en;q=0.5",
   "cache-control": "max-age=0",
   priority: "u=0, i",
-  "sec-ch-ua": '"Brave";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+  "sec-ch-ua": '"Brave";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
   "sec-ch-ua-mobile": "?0",
   "sec-ch-ua-platform": '"Windows"',
   "sec-fetch-dest": "document",
   "sec-fetch-mode": "navigate",
-  "sec-fetch-site": "same-origin",
+  "sec-fetch-site": "none",
   "sec-fetch-user": "?1",
   "sec-gpc": "1",
   "upgrade-insecure-requests": "1",
   cookie: "AC=C",
+  Referer: "https://prehraj.to/",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
 /**
@@ -31,21 +32,18 @@ const headers = {
  * @param {string} password
  */
 async function login(userName, password) {
-  const result = await fetch("https://prehraj.to/", {
+  const r1 = await fetch("https://prehraj.to/?login-gtm_action=login", {
     headers: {
       ...headers,
-      redirect: "manual",
       "content-type": "application/x-www-form-urlencoded",
-      Referer: "https://prehraj.to/",
-      "Referrer-Policy": "strict-origin-when-cross-origin",
     },
+    redirect: "manual",
     body: `email=${encodeURIComponent(userName)}&password=${encodeURIComponent(
       password,
     )}&remember=on&_submit=P%C5%99ihl%C3%A1sit+se&_do=login-loginForm-submit`,
     method: "POST",
   });
-
-  const cookies = extractCookies(result);
+  const cookies = extractCookies(r1);
 
   return {
     headers: headerCookies(cookies),
@@ -207,6 +205,7 @@ async function getSearchResults(title, fetchOptions = {}) {
       method: "GET",
     },
   );
+
   const pageHtml = await pageResponse.text();
   const { document } = parseHTML(pageHtml);
   const links = document.querySelectorAll("a.video--link");
@@ -241,15 +240,15 @@ async function getSearchResults(title, fetchOptions = {}) {
 function getResolver(initOptions) {
   let fetchOptions = {};
   let isIndexing = false;
-  const storage = new Storage("./storage/.ulozto.sqlite");
+  //const storage = new Storage("./storage/.ulozto.sqlite");
 
   return {
     resolverName: "PrehrajTo",
 
     prepare: async () => {
-      await storage.prepared;
-      const lastReindexed = await storage.getMeta("lastReindexed");
-
+      //await storage.prepared;
+      //const lastReindexed = await storage.getMeta("lastReindexed");
+      /*
       if (!isIndexing) {
         if (isOlder(3_600_000, lastReindexed)) {
           console.log("Reindexing site...");
@@ -261,10 +260,11 @@ function getResolver(initOptions) {
           });
         }
       }
+      */
     },
 
     init: async () => {
-      await storage.prepared;
+      //await storage.prepared;
 
       if (initOptions) {
         const { userName, password } = initOptions;
@@ -273,6 +273,7 @@ function getResolver(initOptions) {
         fetchOptions = loginAnonymous();
       }
 
+      /*
       const lastReindexed = await storage.getMeta("lastReindexed");
       const lastUpdated = await storage.getMeta("lastUpdated");
 
@@ -294,10 +295,11 @@ function getResolver(initOptions) {
           });
         }
       }
+      */
     },
 
-    searchX: (title) => getSearchResults(title, fetchOptions),
-    search: async (title) => {
+    search: (title) => getSearchResults(title, fetchOptions),
+    searchX: async (title) => {
       console.log(title);
       await storage.prepared;
       const rows = await storage.search(`"${title.replaceAll(" ", '"+"')}"`);

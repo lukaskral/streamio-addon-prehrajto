@@ -1,5 +1,6 @@
 const { computeScore } = require("./score");
 const { cartesian } = require("./utils/cartesian");
+const { deduplicateByProp } = require("./utils/deduplicateByProp");
 
 /** @typedef {import('./meta.js').Meta} Meta */
 /** @typedef {import('../userConfig/userConfig.js').UserConfigData} UserConfigData */
@@ -11,7 +12,6 @@ const { cartesian } = require("./utils/cartesian");
  *  duration: number;
  *  format?: string;
  *  size: number;
- *  detailPageUrl: string;
  * }} SearchResult
  */
 
@@ -64,25 +64,28 @@ async function getTopItems(meta, resolvers, config) {
     searchTerms.push(meta.names.cs);
   }
 
-  const searchResults = (
-    await Promise.allSettled(
-      cartesian(resolvers, searchTerms).map(
-        /** @param {[Resolver, string]} param0 */
-        async ([resolver, searchTerm]) => {
-          const searchResults = await resolver.search(searchTerm, config);
-          return searchResults.map((r) => ({
-            ...r,
-            resolverName: resolver.resolverName,
-            score: computeScore(meta, r),
-          }));
-        },
-      ),
+  const searchResults = deduplicateByProp(
+    (
+      await Promise.allSettled(
+        cartesian(resolvers, searchTerms).map(
+          /** @param {[Resolver, string]} param0 */
+          async ([resolver, searchTerm]) => {
+            const searchResults = await resolver.search(searchTerm, config);
+            return searchResults.map((r) => ({
+              ...r,
+              resolverName: resolver.resolverName,
+              score: computeScore(meta, r),
+            }));
+          },
+        ),
+      )
     )
-  )
-    .map((r) => (r.status === "fulfilled" && r.value ? r.value : null))
-    .filter((r) => Array.isArray(r))
-    .flat()
-    .filter((r) => r.score > 0);
+      .map((r) => (r.status === "fulfilled" && r.value ? r.value : null))
+      .filter((r) => Array.isArray(r))
+      .flat()
+      .filter((r) => r.score > 0),
+    "detailPageUrl",
+  );
 
   searchResults.sort((a, b) => b.score - a.score);
 

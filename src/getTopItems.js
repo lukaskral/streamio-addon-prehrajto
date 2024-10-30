@@ -51,13 +51,17 @@ async function getTopItems(meta, resolvers, config) {
       "e",
       String(meta.episode.number).padStart(2, "0"),
     ].join("");
-    const title = `${meta.name} ${episodeSignature}`;
-    searchTerms.push(title);
+    searchTerms.push(`${meta.names.en} ${episodeSignature}`);
+    searchTerms.push(`${meta.names.cs} ${episodeSignature}`);
     searchTerms.push(
-      `${meta.name} ${meta.episode.season}x${meta.episode.number}`,
+      `${meta.names.en} ${meta.episode.season}x${meta.episode.number}`,
+    );
+    searchTerms.push(
+      `${meta.names.cs} ${meta.episode.season}x${meta.episode.number}`,
     );
   } else {
-    searchTerms.push(meta.name);
+    searchTerms.push(meta.names.en);
+    searchTerms.push(meta.names.cs);
   }
 
   const searchResults = (

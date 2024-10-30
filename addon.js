@@ -6,6 +6,7 @@ const { getTopItems } = require("./src/getTopItems");
 const { bytesToSize } = require("./src/utils/convert");
 const { initResolvers } = require("./src/initResolvers");
 const { userConfigDef } = require("./src/userConfig/userConfig");
+const { getImdbDetails } = require("./src/service/imdb");
 
 const manifest = {
   id: "community.prehrajto",
@@ -29,8 +30,17 @@ let activeResolvers = [];
 
 builder.defineStreamHandler(async ({ type, id, config }) => {
   try {
-    const meta = await getMeta(type, id);
-    console.log("streamHandler", { type, id });
+    const [baseMeta, csMeta] = await Promise.all([
+      getMeta(type, id),
+      getImdbDetails(id, "cs"),
+    ]);
+    const meta = {
+      ...baseMeta,
+      names: {
+        en: baseMeta.name,
+        cs: csMeta.alternateName,
+      },
+    };
 
     if (!activeResolvers.length) {
       activeResolvers = await initResolvers();

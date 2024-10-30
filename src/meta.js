@@ -11,6 +11,7 @@
  *     imdb_id:        string;
  *     moviedb_id:     number;
  *     name:           string;
+ *     names:          Record<"en" | "cs", string>;
  *     popularity:     number;
  *     poster:         string;
  *     released:       string;

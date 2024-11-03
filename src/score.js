@@ -3,10 +3,11 @@
 
 /**
  * @param {Meta} meta
+ * @param {string} searchTerm
  * @param {SearchResult} searchResult
  * @returns
  */
-function computeScore(meta, searchResult) {
+function computeScore(meta, searchTerm, searchResult) {
   try {
     const runtime = parseInt(meta.runtime) * 60; // run time in seconds
     const resultRuntime = searchResult.duration;
@@ -19,18 +20,22 @@ function computeScore(meta, searchResult) {
     const minSize = resultRuntime * 450000; // 1.5GB/h
     const maxSize = resultRuntime * 600000; // 2GB/h
     const resultSize = searchResult.size;
-    const sizeScore =
+
+    // TODO not working properly
+    const sizeScore = Math.max(
       resultSize < thresholdSize
         ? 0
         : resultSize < minSize
           ? 1 - minSize / resultSize
           : resultSize > maxSize
             ? 1 - Math.min((maxSize / resultSize) * 0.1, 0.5)
-            : 1;
+            : 1,
+      0.6,
+    );
 
     const yearScore = searchResult.title.includes(meta.released) ? 1.2 : 1;
 
-    const requiredWords = meta.name
+    const requiredWords = searchTerm
       .replaceAll(/[^a-zA-Z0-9]+/g, " ")
       .split(" ")
       .filter((word) => word.length >= 2);

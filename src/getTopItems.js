@@ -71,11 +71,18 @@ async function getTopItems(meta, resolvers, config) {
           /** @param {[Resolver, string]} param0 */
           async ([resolver, searchTerm]) => {
             const searchResults = await resolver.search(searchTerm, config);
-            return searchResults.map((r) => ({
+            const scoredSearchResults = searchResults.map((r) => ({
               ...r,
               resolverName: resolver.resolverName,
-              score: computeScore(meta, r),
+              score: computeScore(meta, searchTerm, r),
             }));
+
+            scoredSearchResults.sort((a, b) => b.score - a.score);
+            const topItems =
+              scoredSearchResults.length > 7
+                ? scoredSearchResults.slice(0, 7)
+                : scoredSearchResults;
+            return topItems;
           },
         ),
       )
@@ -87,14 +94,9 @@ async function getTopItems(meta, resolvers, config) {
     "detailPageUrl",
   );
 
-  searchResults.sort((a, b) => b.score - a.score);
-
-  const topItems =
-    searchResults.length > 7 ? searchResults.slice(0, 7) : searchResults;
-
   const results = (
     await Promise.allSettled(
-      topItems.map(async (searchResult) => {
+      searchResults.map(async (searchResult) => {
         const resolver = resolvers.find(
           (r) => searchResult.resolverName === r.resolverName,
         );

@@ -34,6 +34,7 @@ builder.defineStreamHandler(async ({ type, id, config }) => {
       getMeta(type, id),
       getImdbDetails(id, "cs"),
     ]);
+
     const meta = {
       ...baseMeta,
       names: {
@@ -41,6 +42,7 @@ builder.defineStreamHandler(async ({ type, id, config }) => {
         cs: csMeta.alternateName,
       },
     };
+    console.log({ id, names: meta.names });
 
     if (!activeResolvers.length) {
       activeResolvers = await initResolvers();

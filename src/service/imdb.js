@@ -26,7 +26,8 @@ async function getImdbDetails(id, languageCode = "cs") {
     const pageResponse = await fetch(`https://www.imdb.com/title/${imdbId}/`, {
       headers: {
         ...headers,
-        "accept-language": `${languageCode}; q=1.0, en; q=0.5`,
+        "accept-language": `${languageCode};q=1.0, en;q=0.5`,
+        "x-forwarded-for": "147.251.0.0", // todo find address range for given country
       },
       method: "GET",
     });

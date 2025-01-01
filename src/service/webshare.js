@@ -162,11 +162,6 @@ function getResolver() {
         addonConfig.websharePassword,
       );
 
-      console.log({
-        u: addonConfig.webshareUsername,
-        p: addonConfig.websharePassword,
-        tokens,
-      });
       return "wst" in tokens;
     },
 

@@ -77,11 +77,12 @@ async function getTopItems(meta, allResolvers, config) {
       );
     }
   } else {
+    const releaseYear = new Date(meta.released).getFullYear();
     if (meta.names.en) {
-      searchTerms.push(meta.names.en);
+      searchTerms.push(`${meta.names.en} ${releaseYear}`);
     }
     if (meta.names.cs) {
-      searchTerms.push(meta.names.cs);
+      searchTerms.push(`${meta.names.cs} ${releaseYear}`);
     }
   }
 
@@ -93,12 +94,12 @@ async function getTopItems(meta, allResolvers, config) {
           async ([resolver, searchTerm]) => {
             const searchResults = await resolver.search(searchTerm, config);
             const scoredSearchResults = searchResults.map((r) => ({
-              ...r,
               resolverName: resolver.resolverName,
               score: computeScore(meta, searchTerm, r),
+              ...r,
             }));
 
-            scoredSearchResults.sort((a, b) => b.score - a.score);
+            scoredSearchResults.sort(compareScores);
             const topItems =
               scoredSearchResults.length > 7
                 ? scoredSearchResults.slice(0, 7)
@@ -144,9 +145,13 @@ async function getTopItems(meta, allResolvers, config) {
     .map((r) => (r.status === "fulfilled" && r.value ? r.value : null))
     .filter((r) => Boolean(r));
 
-  console.log(results);
+  results.sort(compareScores);
 
   return results;
+}
+
+function compareScores(a, b) {
+  return b.score - a.score;
 }
 
 module.exports = { getTopItems };

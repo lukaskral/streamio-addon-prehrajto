@@ -52,10 +52,13 @@ builder.defineStreamHandler(async ({ type, id, config }) => {
 
     const streams = topItems.map((item) => ({
       url: item.video,
-      name: `${item.resolverName}: ${item.title} (${bytesToSize(item.size)})`,
+      name: `${item.resolverName}, (${bytesToSize(item.size)})`,
+      description: item.title,
       subtitles: item.subtitles ?? undefined,
       behaviorHints: {
         videoSize: item.size,
+        behaviorHints: `${item.resolverName}-${item.resolverId}`,
+        // filename: "" // TODO to get correct subtitles
       },
     }));
     return {

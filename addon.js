@@ -9,7 +9,7 @@ const { userConfigDef } = require("./src/userConfig/userConfig");
 const { getImdbDetails } = require("./src/service/imdb");
 
 const manifest = {
-  id: "community.prehrajto",
+  id: "community.czstreams",
   version: pkg.version,
   catalogs: [],
   resources: ["stream"],

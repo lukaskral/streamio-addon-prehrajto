@@ -7,6 +7,7 @@ const { deduplicateByProp } = require("./utils/deduplicateByProp");
 
 /**
  * @typedef {{
+ *  resolverId: string;
  *  title: string;
  *  detailPageUrl:string;
  *  duration: number;
@@ -28,6 +29,7 @@ const { deduplicateByProp } = require("./utils/deduplicateByProp");
  *  resolverName: string;
  *  prepare: () => Promise<void>;
  *  init: () => Promise<boolean>;
+ *  validateConfig: (config: UserConfigData) => Promise<boolean>;
  *  search: (title: string) => Promise<SearchResult[]>;
  *  resolve: (SearchResult) => Promise<StreamResult>;
  * }} Resolver
@@ -36,11 +38,22 @@ const { deduplicateByProp } = require("./utils/deduplicateByProp");
 /**
  *
  * @param {Meta} meta
- * @param {Resolver[]} resolvers
+ * @param {Resolver[]} allResolvers
  * @param {UserConfigData} config
  * @returns {Promise<StreamResult[]>}
  */
-async function getTopItems(meta, resolvers, config) {
+async function getTopItems(meta, allResolvers, config) {
+  const resolvers = (
+    await Promise.all(
+      allResolvers.map(async (r) => ({
+        resolver: r,
+        valid: await r.validateConfig(config),
+      })),
+    )
+  )
+    .filter((obj) => obj.valid)
+    .map((obj) => obj.resolver);
+
   /** @type {string[]} */
   const searchTerms = [];
 
@@ -51,17 +64,25 @@ async function getTopItems(meta, resolvers, config) {
       "e",
       String(meta.episode.number).padStart(2, "0"),
     ].join("");
-    searchTerms.push(`${meta.names.en} ${episodeSignature}`);
-    searchTerms.push(`${meta.names.cs} ${episodeSignature}`);
-    searchTerms.push(
-      `${meta.names.en} ${meta.episode.season}x${meta.episode.number}`,
-    );
-    searchTerms.push(
-      `${meta.names.cs} ${meta.episode.season}x${meta.episode.number}`,
-    );
+    if (meta.names.en) {
+      searchTerms.push(`${meta.names.en} ${episodeSignature}`);
+      searchTerms.push(
+        `${meta.names.en} ${meta.episode.season}x${meta.episode.number}`,
+      );
+    }
+    if (meta.names.cs) {
+      searchTerms.push(`${meta.names.cs} ${episodeSignature}`);
+      searchTerms.push(
+        `${meta.names.cs} ${meta.episode.season}x${meta.episode.number}`,
+      );
+    }
   } else {
-    searchTerms.push(meta.names.en);
-    searchTerms.push(meta.names.cs);
+    if (meta.names.en) {
+      searchTerms.push(meta.names.en);
+    }
+    if (meta.names.cs) {
+      searchTerms.push(meta.names.cs);
+    }
   }
 
   const searchResults = deduplicateByProp(
@@ -91,7 +112,7 @@ async function getTopItems(meta, resolvers, config) {
       .filter((r) => Array.isArray(r))
       .flat()
       .filter((r) => r.score > 0),
-    "detailPageUrl",
+    "resolverId",
   );
 
   const results = (
@@ -122,6 +143,8 @@ async function getTopItems(meta, resolvers, config) {
   )
     .map((r) => (r.status === "fulfilled" && r.value ? r.value : null))
     .filter((r) => Boolean(r));
+
+  console.log(results);
 
   return results;
 }

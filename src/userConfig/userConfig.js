@@ -1,5 +1,17 @@
 const userConfigDef = [
   {
+    key: "webshareUsername",
+    type: "text",
+    title: "WebshareCz username",
+    required: false,
+  },
+  {
+    key: "websharePassword",
+    type: "password",
+    title: "WebshareCz password",
+    required: false,
+  },
+  {
     key: "prehrajtoUsername",
     type: "text",
     title: "PrehrajTo username",
@@ -15,6 +27,8 @@ const userConfigDef = [
 
 /**
  * @typedef {{
+ *   webshareUsername: string;
+ *   websharePassword: string;
  *   prehrajtoUsername: string;
  *   prehrajtoPassword: string;
  * }} UserConfigData

@@ -1,25 +1,14 @@
 const { parseHTML } = require("linkedom");
 const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
 const { extractCookies, headerCookies } = require("../utils/cookies.js");
+const commonHeaders = require("../utils/headers.js");
 
 const headers = {
+  ...commonHeaders,
+  cookie: "AC=C",
   accept:
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-  "accept-language": "en-GB,en;q=0.5",
-  "cache-control": "max-age=0",
-  priority: "u=0, i",
-  "sec-ch-ua": '"Brave";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-  "sec-ch-ua-mobile": "?0",
-  "sec-ch-ua-platform": '"Windows"',
-  "sec-fetch-dest": "document",
-  "sec-fetch-mode": "navigate",
-  "sec-fetch-site": "none",
-  "sec-fetch-user": "?1",
-  "sec-gpc": "1",
-  "upgrade-insecure-requests": "1",
-  cookie: "AC=C",
   Referer: "https://prehraj.to/",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
 /**
@@ -155,13 +144,15 @@ async function getSearchResults(title, fetchOptions = {}) {
   const { document } = parseHTML(pageHtml);
   const links = document.querySelectorAll("a.video--link");
   const results = [...links].map((linkEl) => {
+    const path = linkEl.getAttribute("href");
     const sizeStr = linkEl
       .querySelector(".video__tag--size")
       .innerHTML.toUpperCase();
 
     return {
+      resolverId: path,
       title: linkEl.getAttribute("title"),
-      detailPageUrl: `https://prehraj.to${linkEl.getAttribute("href")}`,
+      detailPageUrl: `https://prehraj.to${path}`,
       duration: timeToSeconds(
         linkEl.querySelector(".video__tag--time").innerHTML,
       ),
@@ -186,6 +177,17 @@ function getResolver() {
     prepare: async () => {},
 
     init: async () => {},
+
+    validateConfig: async (addonConfig) => {
+      if (!addonConfig.prehrajtoUsername || !addonConfig.prehrajtoPassword) {
+        return false;
+      }
+      const fetchOptions = await getFetchOptions(
+        addonConfig.prehrajtoUsername,
+        addonConfig.prehrajtoPassword,
+      );
+      return "headers" in fetchOptions;
+    },
 
     search: async (title, addonConfig) => {
       const fetchOptions = await getFetchOptions(

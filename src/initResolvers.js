@@ -1,5 +1,6 @@
 const { getResolver: initPrehrajtoResolver } = require("./service/prehrajto");
 const { getResolver: initFastshareResolver } = require("./service/fastshare");
+const { getResolver: initWebshareResolver } = require("./service/webshare");
 const { getResolver: initZalohujsiResolver } = require("./service/zalohujsi");
 
 /** @typedef {import('./getTopItems.js').Resolver} Resolver */
@@ -7,8 +8,9 @@ const { getResolver: initZalohujsiResolver } = require("./service/zalohujsi");
 async function initResolvers() {
   /** @type {Resolver[]} */
   const resolvers = [
-    initPrehrajtoResolver(),
     // initFastshareResolver(),
+    initPrehrajtoResolver(),
+    initWebshareResolver(),
     // initZalohujsiResolver(),
   ];
 

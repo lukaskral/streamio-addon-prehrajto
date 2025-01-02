@@ -158,6 +158,9 @@ function getResolver(initOptions) {
         fetchOptions = await login(userName, password);
       }
     },
+    validateConfig: async (addonConfig) => {
+      return true;
+    },
     search: (title, addonConfig) => getSearchResults(title, fetchOptions),
     resolve: async (searchResult, addonConfig) => ({
       ...searchResult,

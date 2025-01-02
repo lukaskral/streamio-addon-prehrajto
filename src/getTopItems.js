@@ -43,48 +43,8 @@ const { deduplicateByProp } = require("./utils/deduplicateByProp");
  * @returns {Promise<StreamResult[]>}
  */
 async function getTopItems(meta, allResolvers, config) {
-  const resolvers = (
-    await Promise.all(
-      allResolvers.map(async (r) => ({
-        resolver: r,
-        valid: await r.validateConfig(config),
-      })),
-    )
-  )
-    .filter((obj) => obj.valid)
-    .map((obj) => obj.resolver);
-
-  /** @type {string[]} */
-  const searchTerms = [];
-
-  if (meta.episode) {
-    const episodeSignature = [
-      "s",
-      String(meta.episode.season).padStart(2, "0"),
-      "e",
-      String(meta.episode.number).padStart(2, "0"),
-    ].join("");
-    if (meta.names.en) {
-      searchTerms.push(`${meta.names.en} ${episodeSignature}`);
-      searchTerms.push(
-        `${meta.names.en} ${meta.episode.season}x${meta.episode.number}`,
-      );
-    }
-    if (meta.names.cs) {
-      searchTerms.push(`${meta.names.cs} ${episodeSignature}`);
-      searchTerms.push(
-        `${meta.names.cs} ${meta.episode.season}x${meta.episode.number}`,
-      );
-    }
-  } else {
-    const releaseYear = new Date(meta.released).getFullYear();
-    if (meta.names.en) {
-      searchTerms.push(`${meta.names.en} ${releaseYear}`);
-    }
-    if (meta.names.cs) {
-      searchTerms.push(`${meta.names.cs} ${releaseYear}`);
-    }
-  }
+  const resolvers = await getActiveResolvers(allResolvers, config);
+  const searchTerms = getSearchTerms(meta);
 
   const searchResults = deduplicateByProp(
     (
@@ -93,11 +53,13 @@ async function getTopItems(meta, allResolvers, config) {
           /** @param {[Resolver, string]} param0 */
           async ([resolver, searchTerm]) => {
             const searchResults = await resolver.search(searchTerm, config);
-            const scoredSearchResults = searchResults.map((r) => ({
-              resolverName: resolver.resolverName,
-              score: computeScore(meta, searchTerm, r),
-              ...r,
-            }));
+            const scoredSearchResults = searchResults
+              .map((r) => ({
+                resolverName: resolver.resolverName,
+                score: computeScore(meta, r),
+                ...r,
+              }))
+              .filter((r) => r.score > 0);
 
             scoredSearchResults.sort(compareScores);
             const topItems =
@@ -111,10 +73,11 @@ async function getTopItems(meta, allResolvers, config) {
     )
       .map((r) => (r.status === "fulfilled" && r.value ? r.value : null))
       .filter((r) => Array.isArray(r))
-      .flat()
-      .filter((r) => r.score > 0),
+      .flat(),
     "resolverId",
   );
+
+  console.log(searchResults);
 
   const results = (
     await Promise.allSettled(
@@ -148,6 +111,58 @@ async function getTopItems(meta, allResolvers, config) {
   results.sort(compareScores);
 
   return results;
+}
+
+/**
+ *
+ * @param {Resolver[]} allResolvers
+ * @param {UserConfigData} config
+ * @returns {Promise<Resolver[]>}
+ */
+async function getActiveResolvers(allResolvers, config) {
+  const resolvers = (
+    await Promise.all(
+      allResolvers.map(async (r) => ({
+        resolver: r,
+        valid: await r.validateConfig(config),
+      })),
+    )
+  )
+    .filter((obj) => obj.valid)
+    .map((obj) => obj.resolver);
+  return resolvers;
+}
+
+/**
+ * @param {Meta} meta
+ * @returns {string[]}
+ */
+function getSearchTerms(meta) {
+  /** @type {string[]} */
+  const searches = [];
+
+  if (meta.episode) {
+    const eps = String(meta.episode.season).padStart(2, "0");
+    const epn = String(meta.episode.number).padStart(2, "0");
+
+    if (meta.names.en) {
+      searches.push(`${meta.names.en} S${eps}E${epn}`);
+      searches.push(`${meta.names.en} ${eps}x${epn}`);
+    }
+    if (meta.names.cs) {
+      searches.push(`${meta.names.cs} S${eps}E${epn}`);
+      searches.push(`${meta.names.cs} ${eps}x${epn}`);
+    }
+  } else {
+    const releaseYear = new Date(meta.released).getFullYear();
+    if (meta.names.en) {
+      searches.push(`${meta.names.en} ${releaseYear}`);
+    }
+    if (meta.names.cs) {
+      searches.push(`${meta.names.cs} ${releaseYear}`);
+    }
+  }
+  return searches;
 }
 
 function compareScores(a, b) {

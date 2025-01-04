@@ -1,23 +1,26 @@
 {
-	"name": "stremio-plugin-prehrajto",
-	"version": "0.0.19",
-	"description": "",
-	"scripts": {
-		"start": "node server.js",
-		"proxy": "npx proxy-lists getProxies --countries=\"cz,sk\" --anonymity-levels=\"elite\" --stdout"
-	},
-	"dependencies": {
-		"crypto-js": "^4.2.0",
-		"eslint": "^9.3.0",
-		"express": "^4.19.2",
-		"fetch-socks": "^1.3.0",
-		"linkedom": "^0.16.11",
-		"prettier": "^3.2.5",
-		"stremio-addon-sdk": "^1.6.10",
-		"undici": "^6.18.0",
-		"xml-stream": "^0.4.5"
-	},
-	"devDependencies": {
-		"typescript": "^5.4.5"
-	}
+  "name": "stremio-plugin-prehrajto",
+  "version": "0.0.20",
+  "description": "",
+  "engines": {
+    "node": "20.18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "proxy": "npx proxy-lists getProxies --countries=\"cz,sk\" --anonymity-levels=\"elite\" --stdout"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "eslint": "^9.17.0",
+    "express": "^4.19.2",
+    "fetch-socks": "^1.3.2",
+    "linkedom": "^0.18.6",
+    "prettier": "^3.4.2",
+    "stremio-addon-sdk": "^1.6.10",
+    "undici": "^7.2.0",
+    "xml-stream": "^0.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
 }

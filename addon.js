@@ -39,10 +39,9 @@ builder.defineStreamHandler(async ({ type, id, config }) => {
       ...baseMeta,
       names: {
         en: baseMeta.name,
-        cs: csMeta.alternateName,
+        cs: csMeta?.alternateName,
       },
     };
-    console.log({ id, names: meta.names });
 
     if (!activeResolvers.length) {
       activeResolvers = await initResolvers();
@@ -57,8 +56,9 @@ builder.defineStreamHandler(async ({ type, id, config }) => {
       subtitles: item.subtitles ?? undefined,
       behaviorHints: {
         videoSize: item.size,
-        behaviorHints: `${item.resolverName}-${item.resolverId}`,
-        // filename: "" // TODO to get correct subtitles
+        bingeGroup: `${item.resolverName}-${item.resolverId}`,
+        ...(item.behaviorHints ?? {}),
+        filename: item.title,
       },
     }));
     return {

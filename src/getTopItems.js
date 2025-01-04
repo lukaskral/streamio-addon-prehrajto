@@ -77,8 +77,6 @@ async function getTopItems(meta, allResolvers, config) {
     "resolverId",
   );
 
-  console.log(searchResults);
-
   const results = (
     await Promise.allSettled(
       searchResults.map(async (searchResult) => {
@@ -92,8 +90,7 @@ async function getTopItems(meta, allResolvers, config) {
           const data = await resolver.resolve(searchResult, config);
           return {
             ...searchResult,
-            video: data.video,
-            subtitles: data.subtitles,
+            ...data,
           };
         } catch (e) {
           console.log(

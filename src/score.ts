@@ -1,20 +1,13 @@
-const { normalizeString } = require("./utils/normalizeString");
-
-/** @typedef {import('./getTopItems.js').SearchResult} SearchResult */
-/** @typedef {import('./getTopItems.js').SearchDef} SearchDef */
-/** @typedef {import('./meta.js').Meta} Meta */
+import type { SearchResult } from "./getTopItems.ts";
+import type { Meta } from "./meta.ts";
+import { normalizeString } from "./utils/normalizeString.ts";
 
 const advantages = ["brrip", "bdrip", "webrip", "4k", "uhd", "2160p"];
-const neutral = ["1080p", "hd", "h264", "h265", "avi"];
+// const neutral = ["1080p", "hd", "h264", "h265", "avi"];
 const disadvantages = ["camrip", "kinorip"];
 const banned = ["trailer", "teaser"];
 
-/**
- * @param {Meta} meta
- * @param {SearchResult} searchResult
- * @returns
- */
-function computeScore(meta, searchResult) {
+export function computeScore(meta: Meta, searchResult: SearchResult) {
   try {
     const coefficients = [
       getTitleScore(meta, searchResult),
@@ -25,7 +18,6 @@ function computeScore(meta, searchResult) {
       geKeywordsScore(meta, searchResult),
     ];
 
-    searchResult.coef = coefficients;
     return coefficients.reduce((ret, part) => ret * part, 1);
   } catch (e) {
     console.error(e);
@@ -33,7 +25,7 @@ function computeScore(meta, searchResult) {
   }
 }
 
-function getTitleScore(meta, searchResult) {
+function getTitleScore(meta: Meta, searchResult: SearchResult) {
   const normalizedResult = normalizeString(searchResult.title);
   const normalizedTitles = Object.values(meta.names)
     .filter((title) => typeof title === "string")
@@ -58,7 +50,7 @@ function getTitleScore(meta, searchResult) {
   return titleScore > 0.3 ? titleScore : 0;
 }
 
-function getEpisodeScore(meta, searchResult) {
+function getEpisodeScore(meta: Meta, searchResult: SearchResult) {
   const normalizedResult = normalizeString(searchResult.title);
   if ("episode" in meta && meta.episode) {
     try {
@@ -71,7 +63,7 @@ function getEpisodeScore(meta, searchResult) {
           return 1.3;
         }
       }
-    } catch (error) {
+    } catch {
       // nothing to do
     }
     // episode number not found, remove from results
@@ -81,7 +73,7 @@ function getEpisodeScore(meta, searchResult) {
   return 1;
 }
 
-function getYearScore(meta, searchResult) {
+function getYearScore(meta: Meta, searchResult: SearchResult) {
   const normalizedResult = normalizeString(searchResult.title);
   try {
     const yearRegex = /\s((?:19|20)\d{2})(?:\s|$)/gim;
@@ -91,12 +83,12 @@ function getYearScore(meta, searchResult) {
     } else {
       return 0.8;
     }
-  } catch (error) {
+  } catch {
     return 1;
   }
 }
 
-function getRuntimeScore(meta, searchResult) {
+function getRuntimeScore(meta: Meta, searchResult: SearchResult) {
   const runtime = parseInt(meta.runtime) * 60; // run time in seconds
   const resultRuntime = searchResult.duration;
   return runtime && resultRuntime
@@ -104,7 +96,7 @@ function getRuntimeScore(meta, searchResult) {
     : 0.8;
 }
 
-function getSizeScore(meta, searchResult) {
+function getSizeScore(meta: Meta, searchResult: SearchResult) {
   const runtime = parseInt(meta.runtime) * 60; // run time in seconds
 
   const thresholdSize = runtime * 75000; // 0.25GB/h
@@ -127,7 +119,7 @@ function getSizeScore(meta, searchResult) {
   return 1;
 }
 
-function geKeywordsScore(meta, searchResult) {
+function geKeywordsScore(meta: Meta, searchResult: SearchResult) {
   let score = 1;
   const normalizedTitle = normalizeString(searchResult.title);
 
@@ -148,5 +140,3 @@ function geKeywordsScore(meta, searchResult) {
   });
   return score;
 }
-
-module.exports = { computeScore };

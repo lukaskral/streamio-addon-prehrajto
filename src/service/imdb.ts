@@ -1,5 +1,6 @@
-const { parseHTML } = require("linkedom");
-const commonHeaders = require("../utils/headers.js");
+import { parseHTML } from "linkedom";
+
+import commonHeaders from "../utils/headers.ts";
 
 const headers = {
   ...commonHeaders,
@@ -7,7 +8,7 @@ const headers = {
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
 };
 
-async function getImdbDetails(id, languageCode = "cs") {
+export async function getImdbDetails(id: string, languageCode = "cs") {
   const imdbId = id.split(":").at(0);
   try {
     const pageResponse = await fetch(`https://www.imdb.com/title/${imdbId}/`, {
@@ -26,9 +27,7 @@ async function getImdbDetails(id, languageCode = "cs") {
     const scriptEl = [...scriptEls].at(0);
     const data = JSON.parse(scriptEl.textContent);
     return data;
-  } catch (e) {
+  } catch {
     return undefined;
   }
 }
-
-module.exports = { getImdbDetails };

@@ -1,59 +1,9 @@
-const { parseHTML } = require("linkedom");
-const { fetch } = require("undici");
-const { sizeToBytes, timeToSeconds } = require("../utils/convert.js");
+import { parseHTML } from "linkedom";
+import { fetch } from "undici";
 
-const headers = {
-  accept:
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-  "accept-language": "en-GB,en;q=0.5",
-  "cache-control": "max-age=0",
-  priority: "u=0, i",
-  "sec-ch-ua": '"Chromium";v="124", "Brave";v="124", "Not-A.Brand";v="99"',
-  "sec-ch-ua-mobile": "?0",
-  "sec-ch-ua-platform": '"Windows"',
-  "sec-fetch-dest": "document",
-  "sec-fetch-mode": "navigate",
-  "sec-fetch-site": "none",
-  "sec-fetch-user": "?1",
-  "sec-gpc": "1",
-  "upgrade-insecure-requests": "1",
-  cookie: "AC=C",
-};
-
-/**
- * Het headers for authenticated response
- * @param {string} userName
- * @param {string} password
- */
-async function login(userName, password) {
-  const result = await fetch("https://fastshare.cloud/", {
-    headers: {
-      ...headers,
-      redirect: "manual",
-      "content-type": "application/x-www-form-urlencoded",
-      Referer: "https://prehraj.to/",
-      "Referrer-Policy": "strict-origin-when-cross-origin",
-    },
-    body: `email=${encodeURIComponent(userName)}&password=${encodeURIComponent(
-      password,
-    )}&remember=on&_submit=P%C5%99ihl%C3%A1sit+se&_do=login-loginForm-submit`,
-    method: "POST",
-  });
-  const cookies = result.headers
-    .getSetCookie()
-    .map((cookie) => {
-      const parts = cookie.split(";");
-      const [name, value] = parts[0].split("=");
-      return { name, value };
-    })
-    .filter((cookie) => cookie.value.toLowerCase() !== "deleted");
-
-  return {
-    headers: {
-      cookie: cookies.map(({ name, value }) => `${name}=${value}`).join("; "),
-    },
-  };
-}
+import type { Resolver, SearchResult, StreamDetails } from "../getTopItems.ts";
+import { sizeToBytes, timeToSeconds } from "../utils/convert.ts";
+import headers, { type FetchOptions } from "../utils/headers.ts";
 
 function getSearchToken() {
   const token =
@@ -63,7 +13,10 @@ function getSearchToken() {
   return token;
 }
 
-async function getResultStreamUrls(result, fetchOptions = {}) {
+async function getResultStreamUrls(
+  result: SearchResult,
+  fetchOptions: FetchOptions = {},
+): Promise<StreamDetails> {
   const detailPageUrl = result.detailPageUrl;
   const pageResponse = await fetch(detailPageUrl, {
     ...fetchOptions,
@@ -92,18 +45,21 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
   };
 }
 
-async function getSearchResults(title, fetchOptions = {}) {
+async function getSearchResults(
+  title: string,
+  fetchOptions: FetchOptions = {},
+): Promise<SearchResult[]> {
   const params = new URLSearchParams({
     token: getSearchToken(),
     u: "",
     term: Buffer.from(title).toString("base64"),
-    search_purpose: 0,
-    search_resolution: 0,
-    plain_search: 0,
-    limit: 1,
-    order: 3,
+    search_purpose: "0",
+    search_resolution: "0",
+    plain_search: "0",
+    limit: "1",
+    order: "3",
     type: "video",
-    step: 3,
+    step: "3",
   });
   const pageResponse = await fetch(
     `https://fastshare.cloud/test2.php?${params}`,
@@ -127,6 +83,7 @@ async function getSearchResults(title, fetchOptions = {}) {
     const sizeStr = detailEl.querySelector(".pull-right").innerHTML;
 
     return {
+      resolverId: linkEl.getAttribute("href"),
       title: linkEl.innerText,
       detailPageUrl: linkEl.getAttribute("href"),
       duration: timeToSeconds(
@@ -147,28 +104,19 @@ async function getSearchResults(title, fetchOptions = {}) {
  * @param {Object?} Init
  * @returns Resolver
  */
-function getResolver(initOptions) {
-  let fetchOptions = {};
+export function getResolver(): Resolver {
+  const fetchOptions = {};
   return {
     resolverName: "Fastshare",
     prepare: () => Promise.resolve(),
-    init: async () => {
-      if (initOptions) {
-        const { userName, password } = initOptions;
-        fetchOptions = await login(userName, password);
-      }
+    init: async () => false,
+    validateConfig: async () => false,
+    search: (title) => {
+      return getSearchResults(title, fetchOptions);
     },
-    validateConfig: async (addonConfig) => {
-      return true;
-    },
-    search: (title, addonConfig) => getSearchResults(title, fetchOptions),
-    resolve: async (searchResult, addonConfig) => ({
+    resolve: async (searchResult) => ({
       ...searchResult,
       ...(await getResultStreamUrls(searchResult, fetchOptions)),
     }),
   };
 }
-
-module.exports = { getResolver };
-
-module.exports = { getResolver };

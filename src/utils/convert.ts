@@ -2,7 +2,7 @@
  *
  * @param {string} time
  */
-function timeToSeconds(time) {
+export function timeToSeconds(time: string) {
   const [secs, mins = 0, hours = 0] = time
     .split(":")
     .reverse()
@@ -15,7 +15,7 @@ function timeToSeconds(time) {
  *
  * @param {string} sizeStr
  */
-function sizeToBytes(sizeStr) {
+export function sizeToBytes(sizeStr: string) {
   const sizeNum = parseFloat(sizeStr.replace(".", ","));
   const sizeMul = sizeStr.includes("KB")
     ? 1024
@@ -31,7 +31,7 @@ function sizeToBytes(sizeStr) {
 /**
  * @param {number} bytes
  */
-function bytesToSize(bytes) {
+export function bytesToSize(bytes: number) {
   const suffixes = ["", "kB", "MB", "GB", "TB"];
   let b = bytes;
   let idx = 0;
@@ -42,5 +42,3 @@ function bytesToSize(bytes) {
   }
   return `${Math.round(b * 10) / 10}${suffixes[idx]}`;
 }
-
-module.exports = { sizeToBytes, timeToSeconds, bytesToSize };

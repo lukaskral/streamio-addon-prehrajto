@@ -1,12 +1,13 @@
-function md5crypt(password, salt) {
-  var ctx = password + "$1$" + salt;
-  var ctx1 = str_md5(password + salt + password);
+export function md5crypt(password: string, salt: string) {
+  let ctx = password + "$1$" + salt;
+  let ctx1 = str_md5(password + salt + password);
 
   /* "Just as many characters of ctx1" (as there are in the password) */
-  for (var pl = password.length; pl > 0; pl -= 16)
+  for (let pl = password.length; pl > 0; pl -= 16)
     ctx += ctx1.slice(0, pl > 16 ? 16 : pl);
 
   /* "Then something really weird" */
+  // eslint-disable-next-line no-var
   for (var i = password.length; i != 0; i >>= 1)
     if (i & 1) ctx += "\0";
     else ctx += password.charAt(0);
@@ -42,11 +43,11 @@ function md5crypt(password, salt) {
   );
 }
 
-var ascii64 =
+const ascii64 =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-function to64(v, n) {
-  var s = "";
+function to64(v: number, n: number) {
+  let s = "";
   while (--n >= 0) {
     s += ascii64.charAt(v & 0x3f);
     v >>= 6;
@@ -54,45 +55,43 @@ function to64(v, n) {
   return s;
 }
 
-function to64_triplet(str, idx0, idx1, idx2) {
-  var v =
+function to64_triplet(str: string, idx0: number, idx1: number, idx2: number) {
+  const v =
     (str.charCodeAt(idx0) << 16) |
     (str.charCodeAt(idx1) << 8) |
     str.charCodeAt(idx2);
   return to64(v, 4);
 }
 
-function to64_single(str, idx0) {
-  var v = str.charCodeAt(idx0);
+function to64_single(str: string, idx0: number) {
+  const v = str.charCodeAt(idx0);
   return to64(v, 2);
 }
 
-var hexcase = 0; /* hex output format. 0 - lowercase; 1 - uppercase        */
-var b64pad = ""; /* base-64 pad character. "=" for strict RFC compliance   */
-var chrsz = 8; /* bits per input character. 8 - ASCII; 16 - Unicode      */
+const chrsz = 8; /* bits per input character. 8 - ASCII; 16 - Unicode      */
 
-function str_md5(s) {
+function str_md5(s: string) {
   return binl2str(core_md5(str2binl(s), s.length * chrsz));
 }
 
 /*
  * Calculate the MD5 of an array of little-endian words, and a bit length
  */
-function core_md5(x, len) {
+function core_md5(x: number[], len: number) {
   /* append padding */
   x[len >> 5] |= 0x80 << len % 32;
   x[(((len + 64) >>> 9) << 4) + 14] = len;
 
-  var a = 1732584193;
-  var b = -271733879;
-  var c = -1732584194;
-  var d = 271733878;
+  let a = 1732584193;
+  let b = -271733879;
+  let c = -1732584194;
+  let d = 271733878;
 
-  for (var i = 0; i < x.length; i += 16) {
-    var olda = a;
-    var oldb = b;
-    var oldc = c;
-    var oldd = d;
+  for (let i = 0; i < x.length; i += 16) {
+    const olda = a;
+    const oldb = b;
+    const oldc = c;
+    const oldd = d;
 
     a = md5_ff(a, b, c, d, x[i + 0], 7, -680876936);
     d = md5_ff(d, a, b, c, x[i + 1], 12, -389564586);
@@ -167,25 +166,64 @@ function core_md5(x, len) {
     c = safe_add(c, oldc);
     d = safe_add(d, oldd);
   }
-  return Array(a, b, c, d);
+  return [a, b, c, d];
 }
 
 /*
  * These functions implement the four basic operations the algorithm uses.
  */
-function md5_cmn(q, a, b, x, s, t) {
+function md5_cmn(
+  q: number,
+  a: number,
+  b: number,
+  x: number,
+  s: number,
+  t: number,
+) {
   return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s), b);
 }
-function md5_ff(a, b, c, d, x, s, t) {
+function md5_ff(
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  x: number,
+  s: number,
+  t: number,
+) {
   return md5_cmn((b & c) | (~b & d), a, b, x, s, t);
 }
-function md5_gg(a, b, c, d, x, s, t) {
+function md5_gg(
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  x: number,
+  s: number,
+  t: number,
+) {
   return md5_cmn((b & d) | (c & ~d), a, b, x, s, t);
 }
-function md5_hh(a, b, c, d, x, s, t) {
+function md5_hh(
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  x: number,
+  s: number,
+  t: number,
+) {
   return md5_cmn(b ^ c ^ d, a, b, x, s, t);
 }
-function md5_ii(a, b, c, d, x, s, t) {
+function md5_ii(
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  x: number,
+  s: number,
+  t: number,
+) {
   return md5_cmn(c ^ (b | ~d), a, b, x, s, t);
 }
 
@@ -193,16 +231,16 @@ function md5_ii(a, b, c, d, x, s, t) {
  * Add integers, wrapping at 2^32. This uses 16-bit operations internally
  * to work around bugs in some JS interpreters.
  */
-function safe_add(x, y) {
-  var lsw = (x & 0xffff) + (y & 0xffff);
-  var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+function safe_add(x: number, y: number) {
+  const lsw = (x & 0xffff) + (y & 0xffff);
+  const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
   return (msw << 16) | (lsw & 0xffff);
 }
 
 /*
  * Bitwise rotate a 32-bit number to the left.
  */
-function bit_rol(num, cnt) {
+function bit_rol(num: number, cnt: number) {
   return (num << cnt) | (num >>> (32 - cnt));
 }
 
@@ -210,10 +248,10 @@ function bit_rol(num, cnt) {
  * Convert a string to an array of little-endian words
  * If chrsz is ASCII, characters >255 have their hi-byte silently ignored.
  */
-function str2binl(str) {
-  var bin = Array();
-  var mask = (1 << chrsz) - 1;
-  for (var i = 0; i < str.length * chrsz; i += chrsz)
+function str2binl(str: string) {
+  const bin = Array<number>();
+  const mask = (1 << chrsz) - 1;
+  for (let i = 0; i < str.length * chrsz; i += chrsz)
     bin[i >> 5] |= (str.charCodeAt(i / chrsz) & mask) << i % 32;
   return bin;
 }
@@ -221,12 +259,10 @@ function str2binl(str) {
 /*
  * Convert an array of little-endian words to a string
  */
-function binl2str(bin) {
-  var str = "";
-  var mask = (1 << chrsz) - 1;
-  for (var i = 0; i < bin.length * 32; i += chrsz)
+function binl2str(bin: number[]) {
+  let str = "";
+  const mask = (1 << chrsz) - 1;
+  for (let i = 0; i < bin.length * 32; i += chrsz)
     str += String.fromCharCode((bin[i >> 5] >>> i % 32) & mask);
   return str;
 }
-
-module.exports = { md5crypt };

@@ -1,7 +1,5 @@
-const { parseHTML } = require("linkedom");
-const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
-const { extractCookies, headerCookies } = require("../utils/cookies.js");
-const commonHeaders = require("../utils/headers.js");
+import type { Resolver, SearchResult, StreamDetails } from "../getTopItems.ts";
+import commonHeaders, { type FetchOptions } from "../utils/headers.ts";
 
 const headers = {
   ...commonHeaders,
@@ -10,17 +8,14 @@ const headers = {
   referer: "https://www.hellspy.to/",
 };
 
-const fetchOptionsCache = new Map();
-/**
- * Get headers for authenticated response
- * @param {string} userName
- * @param {string} password
- */
-async function getFetchOptions(userName, password) {
+async function getFetchOptions() {
   return {};
 }
 
-async function getResultStreamUrls(result, fetchOptions = {}) {
+async function getResultStreamUrls(
+  result: SearchResult,
+  fetchOptions: FetchOptions = {},
+): Promise<StreamDetails> {
   const linksRegexp = /\\"links\\":(\{.*?\})/gi;
   const detailPageUrl = result.detailPageUrl;
   const pageResponse = await fetch(detailPageUrl, {
@@ -37,19 +32,24 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
     .replaceAll("\\\u0026", "&")
     .replaceAll('\\"', '"');
   const videoSources = Object.entries(JSON.parse(videoSourcesJson))
-    .map(([resolution, link]) => ({ link, resolution: parseInt(resolution) }))
+    .map(([resolution, link]: [string, string]) => ({
+      link,
+      resolution: parseInt(resolution),
+    }))
     .filter((o) => o.link)
     .sort((a, b) => b.resolution - a.resolution);
 
   return {
-    detailPageUrl: result.detailPageUrl,
     video: videoSources[0].link,
     subtitles: [],
     behaviorHints: {},
   };
 }
 
-async function getSearchResults(title, fetchOptions = {}) {
+async function getSearchResults(
+  title: string,
+  fetchOptions: FetchOptions = {},
+) {
   const pageResponse = await fetch(
     `https://www.hellspy.to/api/search?query=${encodeURIComponent(title)}&offset=0`,
     {
@@ -64,7 +64,19 @@ async function getSearchResults(title, fetchOptions = {}) {
     },
   );
 
-  const pageData = await pageResponse.json();
+  const pageData = (await pageResponse.json()) as {
+    status: string;
+    payload: {
+      data: Array<{
+        id: string;
+        name: string;
+        slug: string;
+        length: number;
+        movie_resolution: string;
+        size: string;
+      }>;
+    };
+  };
   if (pageData.status !== "ok") {
     return [];
   }
@@ -83,34 +95,23 @@ async function getSearchResults(title, fetchOptions = {}) {
   return results;
 }
 
-/** @typedef {import('../getTopItems.js').Resolver} Resolver */
-
-/**
- * @returns Resolver
- */
-function getResolver() {
+export function getResolver(): Resolver {
   return {
     resolverName: "HellspyTo",
 
     prepare: async () => {},
 
-    init: async () => {},
+    init: async () => true,
 
-    validateConfig: async (addonConfig) => true,
+    validateConfig: async () => true,
 
-    search: async (title, addonConfig) => {
-      const fetchOptions = await getFetchOptions(
-        addonConfig.sledujtetoUsername ?? "",
-        addonConfig.sledujtetoPassword,
-      );
+    search: async (title) => {
+      const fetchOptions = await getFetchOptions();
       return getSearchResults(title, fetchOptions);
     },
 
-    resolve: async (searchResult, addonConfig) => {
-      const fetchOptions = await getFetchOptions(
-        addonConfig.sledujtetoUsername ?? "",
-        addonConfig.sledujtetoPassword,
-      );
+    resolve: async (searchResult) => {
+      const fetchOptions = await getFetchOptions();
       return {
         ...searchResult,
         ...(await getResultStreamUrls(searchResult, fetchOptions)),
@@ -118,5 +119,3 @@ function getResolver() {
     },
   };
 }
-
-module.exports = { getResolver };

@@ -1,8 +1,11 @@
-const { parseHTML } = require("linkedom");
-const CryptoJS = require("crypto-js");
-const { sizeToBytes } = require("../utils/convert.js");
-const commonHeaders = require("../utils/headers.js");
-const { md5crypt } = require("../utils/webshareCrypto.js");
+import CryptoJS from "crypto-js";
+import { parseHTML } from "linkedom";
+
+import type { SearchResult, StreamDetails } from "../getTopItems.ts";
+import type { Resolver } from "../getTopItems.ts";
+import { sizeToBytes } from "../utils/convert.ts";
+import commonHeaders from "../utils/headers.ts";
+import { md5crypt } from "../utils/webshareCrypto.ts";
 
 const headers = {
   ...commonHeaders,
@@ -10,7 +13,7 @@ const headers = {
   Referer: "https://webshare.cz/",
 };
 
-async function getSalt(userName) {
+async function getSalt(userName: string) {
   const pageResponse = await fetch("https://webshare.cz/api/salt/", {
     headers: {
       ...headers,
@@ -23,7 +26,7 @@ async function getSalt(userName) {
   const { document } = parseHTML(pageHtml);
   const statusEl = document.querySelector("status");
   const saltEl = document.querySelector("salt");
-  const salt = saltEl?.innerHTML;
+  const salt: string = saltEl?.innerHTML;
 
   if (statusEl.innerHTML !== "OK" || !salt) {
     return "";
@@ -31,12 +34,7 @@ async function getSalt(userName) {
   return salt;
 }
 
-/**
- * Get headers for authenticated response
- * @param {string} userName
- * @param {string} password
- */
-async function login(userName, password) {
+async function login(userName: string, password: string) {
   const salt = await getSalt(userName);
   const hash = CryptoJS.SHA1(md5crypt(password, salt)).toString();
   const pageResponse = await fetch("https://webshare.cz/api/login/", {
@@ -63,12 +61,8 @@ async function login(userName, password) {
 }
 
 const tokensCache = new Map();
-/**
- * Get tokens authenticated response
- * @param {string} userName
- * @param {string} password
- */
-async function getTokens(userName, password) {
+
+async function getTokens(userName: string, password: string) {
   const cacheKey = `${userName}:${password}`;
   const tokens = tokensCache.get(cacheKey);
   if (tokens) {
@@ -80,13 +74,16 @@ async function getTokens(userName, password) {
   return newTokens;
 }
 
-async function getResultStreamUrls(result, tokens = {}) {
+async function getResultStreamUrls(
+  result: SearchResult,
+  tokens: Record<string, string>,
+): Promise<StreamDetails> {
   const pageResponse = await fetch("https://webshare.cz/api/file_link/", {
     headers: {
       ...headers,
       "content-type": "application/x-www-form-urlencoded",
     },
-    body: `ident=${result.ident}&category=video&wst=${tokens.wst}`,
+    body: `ident=${result.resolverId}&category=video&wst=${tokens.wst}`,
     method: "POST",
   });
 
@@ -97,7 +94,7 @@ async function getResultStreamUrls(result, tokens = {}) {
   let video = "";
 
   try {
-    const linkRegex = /\<link\>(.*)\<\/link\>/s;
+    const linkRegex = /<link>(.*)<\/link>/s;
     const linkContent = linkRegex.exec(pageHtml)?.[1];
     video = linkContent;
   } catch (error) {
@@ -105,13 +102,16 @@ async function getResultStreamUrls(result, tokens = {}) {
   }
 
   if (statusEl.innerHTML !== "OK" || !video) {
-    return { failed: true };
+    throw new Error("Response failed");
   }
 
   return { video };
 }
 
-async function getSearchResults(title, tokens = {}) {
+async function getSearchResults(
+  title: string,
+  tokens: Record<string, string>,
+): Promise<SearchResult[]> {
   const pageResponse = await fetch("https://webshare.cz/api/search/", {
     headers: {
       ...headers,
@@ -124,34 +124,33 @@ async function getSearchResults(title, tokens = {}) {
   const pageHtml = await pageResponse.text();
   const { document } = parseHTML(pageHtml);
   const files = document.querySelectorAll("file");
-  const results = [...files].map((fileEl) => {
+  const results = [...files].map((fileEl): SearchResult | null => {
     const sizeStr = fileEl.querySelector("size").innerHTML.toUpperCase();
     const id = fileEl.querySelector("ident").innerHTML;
 
+    if (fileEl.querySelector("password").innerHTML !== "0") {
+      return null;
+    }
+
     return {
+      detailPageUrl: `https://webshare.cz/#/file/${id}/`,
+      duration: undefined,
       resolverId: id,
       title: fileEl.querySelector("name").innerHTML,
-      ident: id,
       format: fileEl.querySelector("type").innerHTML, // TODO
       size: sizeToBytes(sizeStr),
-      isProtected: fileEl.querySelector("password").innerHTML !== "0",
     };
   });
   return results;
 }
 
-/** @typedef {import('../getTopItems.js').Resolver} Resolver */
-
-/**
- * @returns Resolver
- */
-function getResolver() {
+export function getResolver(): Resolver {
   return {
     resolverName: "WebShare",
 
     prepare: async () => {},
 
-    init: async () => {},
+    init: async () => true,
 
     validateConfig: async (addonConfig) => {
       if (!addonConfig.webshareUsername || !addonConfig.websharePassword) {
@@ -185,5 +184,3 @@ function getResolver() {
     },
   };
 }
-
-module.exports = { getResolver };

@@ -1,4 +1,4 @@
-const headers = {
+export const headers = {
   "accept-language": "en-GB,en;q=0.5",
   "cache-control": "max-age=0",
   priority: "u=0, i",
@@ -14,4 +14,10 @@ const headers = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
-module.exports = headers;
+type Headers = Record<string, string>;
+
+export type FetchOptions = {
+  headers?: Headers;
+};
+
+export default headers;

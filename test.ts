@@ -1,6 +1,6 @@
-const { getResolver } = require("./src/service/prehrajto");
+import { getResolver } from "./src/service/prehrajto.ts";
 
-+(async function test() {
+(async function test() {
   const addonConfig = {
     prehrajtoUsername: "",
     prehrajtoPassword: "",
@@ -8,7 +8,7 @@ const { getResolver } = require("./src/service/prehrajto");
   const resolver = getResolver();
   await resolver.init();
   const results = await resolver.search(
-    "Harry potter and a stoneHarry Potter and the Sorcerers Stone",
+    "Harry Potter and the Sorcerers Stone",
     addonConfig,
   );
   console.log("Results", results.length);

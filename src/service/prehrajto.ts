@@ -1,7 +1,10 @@
-const { parseHTML } = require("linkedom");
-const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
-const { extractCookies, headerCookies } = require("../utils/cookies.js");
-const commonHeaders = require("../utils/headers.js");
+import { parseHTML } from "linkedom";
+
+import type { Resolver, StreamDetails } from "../getTopItems.ts";
+import type { SearchResult } from "../getTopItems.ts";
+import { sizeToBytes, timeToSeconds } from "../utils/convert.ts";
+import { extractCookies, headerCookies } from "../utils/cookies.ts";
+import commonHeaders, { type FetchOptions } from "../utils/headers.ts";
 
 const headers = {
   ...commonHeaders,
@@ -13,10 +16,12 @@ const headers = {
 
 /**
  * Get headers for authenticated response
- * @param {string} userName
- * @param {string} password
+
  */
-async function login(userName, password) {
+async function login(userName: string, password: string) {
+  if (!userName) {
+    return loginAnonymous();
+  }
   const r1 = await fetch("https://prehraj.to/?login-gtm_action=login", {
     headers: {
       ...headers,
@@ -55,10 +60,8 @@ async function loginAnonymous() {
 const fetchOptionsCache = new Map();
 /**
  * Get headers for authenticated response
- * @param {string} userName
- * @param {string} password
  */
-async function getFetchOptions(userName, password) {
+async function getFetchOptions(userName: string, password: string) {
   const cacheKey = `${userName}:${password}`;
   const fetchOptions = fetchOptionsCache.get(cacheKey);
   if (fetchOptions) {
@@ -70,7 +73,10 @@ async function getFetchOptions(userName, password) {
   return newFetchOptions;
 }
 
-async function getResultStreamUrls(result, fetchOptions = {}) {
+async function getResultStreamUrls(
+  result: SearchResult,
+  fetchOptions: FetchOptions = {},
+): Promise<StreamDetails> {
   const detailPageUrl = result.detailPageUrl;
   const pageResponse = await fetch(detailPageUrl, {
     ...fetchOptions,
@@ -92,7 +98,7 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
   const script = scriptEl.textContent;
 
   let video = "";
-  let subtitles = [];
+  let subtitles: { id: string; url: string; lang: string }[] = [];
 
   try {
     const sourcesRegex = /.*var sources\s*=\s*(\[.*?\])\s*;/s;
@@ -108,7 +114,12 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
   try {
     const sourcesRegex = /.*var tracks\s*=\s*(\[.*?\])\s*;/s;
     const sources = sourcesRegex.exec(script)[1];
-    const items = eval(sources);
+    const items = eval(sources) as Array<{
+      kind: string;
+      label: string;
+      src: string;
+      srclang: string;
+    }>;
     subtitles = items
       .filter((item) => item.kind === "captions")
       .map((item) => ({
@@ -116,16 +127,20 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
         url: item.src,
         lang: item.srclang,
       }));
-  } catch (error) {}
+  } catch {
+    // nothing to do
+  }
 
   return {
-    detailPageUrl,
     video,
     subtitles,
   };
 }
 
-async function getSearchResults(title, fetchOptions = {}) {
+async function getSearchResults(
+  title: string,
+  fetchOptions: FetchOptions = {},
+) {
   const pageResponse = await fetch(
     `https://prehraj.to/hledej/${encodeURIComponent(title)}?vp-page=0`,
     {
@@ -165,18 +180,13 @@ async function getSearchResults(title, fetchOptions = {}) {
   return results;
 }
 
-/** @typedef {import('../getTopItems.js').Resolver} Resolver */
-
-/**
- * @returns Resolver
- */
-function getResolver() {
+export function getResolver(): Resolver {
   return {
     resolverName: "PrehrajTo",
 
     prepare: async () => {},
 
-    init: async () => {},
+    init: async () => true,
 
     validateConfig: async (addonConfig) => {
       if (!addonConfig.prehrajtoUsername || !addonConfig.prehrajtoPassword) {
@@ -209,5 +219,3 @@ function getResolver() {
     },
   };
 }
-
-module.exports = { getResolver };

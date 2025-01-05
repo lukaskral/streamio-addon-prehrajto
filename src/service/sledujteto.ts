@@ -1,7 +1,7 @@
-const { parseHTML } = require("linkedom");
-const { timeToSeconds, sizeToBytes } = require("../utils/convert.js");
-const { extractCookies, headerCookies } = require("../utils/cookies.js");
-const commonHeaders = require("../utils/headers.js");
+import type { Resolver, SearchResult, StreamDetails } from "../getTopItems.ts";
+import { sizeToBytes, timeToSeconds } from "../utils/convert.ts";
+import { extractCookies, headerCookies } from "../utils/cookies.ts";
+import commonHeaders, { type FetchOptions } from "../utils/headers.ts";
 
 const headers = {
   ...commonHeaders,
@@ -11,12 +11,7 @@ const headers = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
-/**
- * Get headers for authenticated response
- * @param {string} userName
- * @param {string} password
- */
-async function login(userName, password) {
+async function login(userName: string, password: string) {
   if (!userName) {
     return loginAnonymous();
   }
@@ -53,12 +48,8 @@ async function loginAnonymous() {
 }
 
 const fetchOptionsCache = new Map();
-/**
- * Get headers for authenticated response
- * @param {string} userName
- * @param {string} password
- */
-async function getFetchOptions(userName, password) {
+
+async function getFetchOptions(userName: string, password: string) {
   const cacheKey = `${userName}:${password}`;
   const fetchOptions = fetchOptionsCache.get(cacheKey);
   if (fetchOptions) {
@@ -70,7 +61,10 @@ async function getFetchOptions(userName, password) {
   return newFetchOptions;
 }
 
-async function getResultStreamUrls(result, fetchOptions = {}) {
+async function getResultStreamUrls(
+  result: SearchResult,
+  fetchOptions: FetchOptions = {},
+): Promise<StreamDetails> {
   const pageResponse = await fetch(
     "https://www.sledujteto.cz/services/add-file-link",
     {
@@ -87,9 +81,8 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
       method: "POST",
     },
   );
-  const pageData = await pageResponse.json();
+  const pageData = (await pageResponse.json()) as { hash: string };
   return {
-    detailPageUrl: result.detailPageUrl,
     video: `https://www.sledujteto.cz/player/index/sledujteto/${pageData.hash}`,
     subtitles: [],
     behaviorHints: {
@@ -100,11 +93,15 @@ async function getResultStreamUrls(result, fetchOptions = {}) {
           ...(fetchOptions.headers ?? {}),
         },
       },
-    },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
   };
 }
 
-async function getSearchResults(title, fetchOptions = {}) {
+async function getSearchResults(
+  title: string,
+  fetchOptions: FetchOptions = {},
+): Promise<SearchResult[]> {
   const pageResponse = await fetch(
     `https://www.sledujteto.cz/services/get-files?query=${encodeURIComponent(title)}&limit=32&page=1&sort=relevance&collection=?vp-page=0`,
     {
@@ -119,7 +116,17 @@ async function getSearchResults(title, fetchOptions = {}) {
     },
   );
 
-  const pageData = await pageResponse.json();
+  const pageData = (await pageResponse.json()) as {
+    error?: string;
+    files: Array<{
+      id: string;
+      filename: string;
+      full_url: string;
+      movie_duration: string;
+      movie_resolution: string;
+      filesize: string;
+    }>;
+  };
   if (pageData.error) {
     return [];
   }
@@ -137,28 +144,25 @@ async function getSearchResults(title, fetchOptions = {}) {
   return results;
 }
 
-/** @typedef {import('../getTopItems.js').Resolver} Resolver */
-
-/**
- * @returns Resolver
- */
-function getResolver() {
+export function getResolver(): Resolver {
   return {
     resolverName: "SledujteTo",
 
     prepare: async () => {},
 
-    init: async () => {},
+    init: async () => false,
 
-    validateConfig: async (addonConfig) => {
-      //      if (!addonConfig.sledujtetoUsername || !addonConfig.sledujtetoPassword) {
-      //        return false;
-      //      }
+    validateConfig: async () => {
+      /*
+      if (!addonConfig.sledujtetoUsername || !addonConfig.sledujtetoPassword) {
+        return false;
+      }
       const fetchOptions = await getFetchOptions(
         addonConfig.sledujtetoUsername ?? "",
         addonConfig.sledujtetoPassword,
       );
-      return "headers" in fetchOptions;
+      */
+      return false; //"headers" in fetchOptions;
     },
 
     search: async (title, addonConfig) => {
@@ -181,5 +185,3 @@ function getResolver() {
     },
   };
 }
-
-module.exports = { getResolver };

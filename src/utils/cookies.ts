@@ -1,9 +1,9 @@
+export type Cookie = { name: string; value: string };
+
 /**
  * Extract cookies from response
- * @param {Response} result
- * @returns
  */
-function extractCookies(result) {
+export function extractCookies(result: Response): ReadonlyArray<Cookie> {
   const cookies = result.headers
     .getSetCookie()
     .map((cookie) => {
@@ -16,10 +16,8 @@ function extractCookies(result) {
   return cookies;
 }
 
-function headerCookies(cookies) {
+export function headerCookies(cookies: ReadonlyArray<Cookie>) {
   return {
     cookie: cookies.map(({ name, value }) => `${name}=${value}`).join("; "),
   };
 }
-
-module.exports = { extractCookies, headerCookies };

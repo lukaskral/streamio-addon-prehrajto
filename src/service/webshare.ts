@@ -148,8 +148,6 @@ export function getResolver(): Resolver {
   return {
     resolverName: "WebShare",
 
-    prepare: async () => {},
-
     init: async () => true,
 
     validateConfig: async (addonConfig) => {

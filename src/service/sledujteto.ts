@@ -148,9 +148,14 @@ export function getResolver(): Resolver {
   return {
     resolverName: "SledujteTo",
 
-    prepare: async () => {},
-
-    init: async () => false,
+    init: async () => {
+      /**
+       * This resolver can't be easily fixed
+       * It requires to call services/add-file-link endpoint every 30 seconds
+       * with file id and current playback time
+       */
+      return false;
+    },
 
     validateConfig: async () => {
       /*

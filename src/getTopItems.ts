@@ -34,7 +34,6 @@ export type StreamResult = ScoredSearchResult & StreamDetails;
 
 export type Resolver = {
   resolverName: string;
-  prepare: () => Promise<void>;
   init: () => Promise<boolean>;
   validateConfig: (config: UserConfigData) => Promise<boolean>;
   search: (title: string, config: UserConfigData) => Promise<SearchResult[]>;

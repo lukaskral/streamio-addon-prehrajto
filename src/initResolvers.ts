@@ -18,14 +18,17 @@ export async function initResolvers() {
 
   const activeResolvers = (
     await Promise.allSettled(
-      resolvers.map(async (resolver) => {
-        await resolver.prepare();
-        await resolver.init();
-        return resolver;
-      }),
+      resolvers.map(async (resolver) => ({
+        resolver,
+        initialized: await resolver.init(),
+      })),
     )
   )
-    .map((r) => (r.status === "fulfilled" && r.value ? r.value : null))
+    .map((r) =>
+      r.status === "fulfilled" && r.value && r.value.initialized
+        ? r.value.resolver
+        : null,
+    )
     .filter((r) => Boolean(r));
   return activeResolvers;
 }

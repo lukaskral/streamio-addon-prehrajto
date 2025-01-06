@@ -184,8 +184,6 @@ export function getResolver(): Resolver {
   return {
     resolverName: "PrehrajTo",
 
-    prepare: async () => {},
-
     init: async () => true,
 
     validateConfig: async (addonConfig) => {
